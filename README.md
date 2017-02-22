@@ -15,6 +15,20 @@ the servlet filter.
 
 ## Configuration
 
+### Auto-configuration
+If you are using Spring Boot the easiest way how to configure OpenTracing instrumentation is to use auto-configuration:
+
+```xml
+<dependency>
+  <groupId>io.opentracing.contrib</groupId>
+  <artifactId>opentracing-spring-web-autoconfigure</artifactId>
+</dependency>
+
+```
+Just provide an OpenTracing tracer bean and all required configuration is automatically
+done for you.
+
+### Manual configuration
 Configuration needs to add `TracingFilter` and `TracingHandlerInterceptor`. Both of these classes
 are required!
 
