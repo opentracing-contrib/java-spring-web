@@ -32,13 +32,13 @@ public class TracingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(Tracer.class)
     public Tracer noopTracer() {
-        log.severe("Tracer bean is not configured! Switching to " + NoopTracer.class.getName());
+        log.info("Tracer bean is not configured! Switching to " + NoopTracer.class.getName());
         return NoopTracerFactory.create();
     }
 
     @Bean
     public FilterRegistrationBean tracingFilter() {
-        log.severe("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
+        log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
                 TracingFilter.class + "mapped to " + "/*");
 
         TracingFilter tracingFilter = new TracingFilter(tracer,
@@ -54,7 +54,7 @@ public class TracingAutoConfiguration {
 
     @Bean
     public WebMvcConfigurerAdapter tracingHandlerInterceptor() {
-        log.severe("Creating " + WebMvcConfigurerAdapter.class.getSimpleName() + " bean with " +
+        log.info("Creating " + WebMvcConfigurerAdapter.class.getSimpleName() + " bean with " +
                 TracingHandlerInterceptor.class);
 
         return new WebMvcConfigurerAdapter() {
