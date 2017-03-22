@@ -55,12 +55,10 @@ public class RestTemplateAutoConfigurationTest {
 
     @Test
     public void testTracingRequest() {
-        {
-            try {
-                restTemplate.getForEntity("http://www.abcfoobar.bar/baz", String.class);
-            } catch (ResourceAccessException ex) {
-                //ok UnknownHostException
-            }
+        try {
+            restTemplate.getForEntity("http://nonexisting.example.com", String.class);
+        } catch (ResourceAccessException ex) {
+            //ok UnknownHostException
         }
         Assert.assertEquals(1, mockTracer.finishedSpans().size());
     }
