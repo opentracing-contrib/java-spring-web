@@ -2,7 +2,8 @@
 
 # OpenTracing Spring Web Handler Interceptor
 
-This library provides instrumentation for Spring  Web applications.
+This library provides instrumentation for Spring  Web applications. It creates tracing data for 
+server requests and also client requests (`RestTemplate`).
 
 ## How does this work?
 
@@ -26,9 +27,11 @@ If you are using Spring Boot the easiest way how to configure OpenTracing instru
 
 ```
 Just provide an OpenTracing tracer bean and all required configuration is automatically
-done for you.
+done for you. It also instruments all `RestTemplate` beans.
 
 ### Manual configuration
+
+#### Server
 Configuration needs to add `TracingFilter` and `TracingHandlerInterceptor`. Both of these classes
 are required!
 
@@ -64,6 +67,12 @@ public class MVCConfiguration extends WebMvcConfigurerAdapter {
 ```
 
 XML based configuration can be used too. Filter can be also directly defined in `web.xml`.
+
+#### Client
+```java
+RestTemplate restTemplate = new RestTemplate();
+restTemplate.setInterceptors(Arrays.asList(new TracingRestTemplateInterceptor(tracer)));
+```
 
 ## Access server span context
 ```java
