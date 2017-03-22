@@ -17,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
@@ -24,7 +25,6 @@ import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestInterc
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.WebSecurityConfig;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
-import io.opentracing.Tracer;
 
 /**
  * @author Pavol Loffay
