@@ -23,8 +23,8 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
  */
 @Configuration
 @ConditionalOnMissingBean(TracingFilter.class)
-public class TracingAutoConfiguration {
-    private static final Logger log = Logger.getLogger(TracingAutoConfiguration.class.getName());
+public class ServerTracingAutoConfiguration {
+    private static final Logger log = Logger.getLogger(ServerTracingAutoConfiguration.class.getName());
 
     @Autowired
     private Tracer tracer;
@@ -39,7 +39,7 @@ public class TracingAutoConfiguration {
     @Bean
     public FilterRegistrationBean tracingFilter() {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
-                TracingFilter.class + "mapped to " + "/*");
+                TracingFilter.class + " mapped to " + "/*");
 
         TracingFilter tracingFilter = new TracingFilter(tracer,
                 Arrays.asList(io.opentracing.contrib.web.servlet.filter.SpanDecorator.STANDARD_TAGS));
