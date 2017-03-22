@@ -23,9 +23,9 @@ import io.opentracing.mock.MockTracer;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {TracingAutoConfigurationTest.SpringConfiguration.class})
+        classes = {ServerTracingAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TracingAutoConfigurationTest {
+public class ServerTracingAutoConfigurationTest {
 
     @Configuration
     @EnableAutoConfiguration
