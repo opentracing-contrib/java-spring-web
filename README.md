@@ -71,7 +71,7 @@ XML based configuration can be used too. Filter can be also directly defined in 
 #### Client
 ```java
 RestTemplate restTemplate = new RestTemplate();
-restTemplate.setInterceptors(Arrays.asList(new TracingRestTemplateInterceptor(tracer)));
+restTemplate.setInterceptors(Collections.singletonList(new TracingRestTemplateInterceptor(tracer)));
 ```
 
 ## Access server span context

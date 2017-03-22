@@ -132,16 +132,14 @@ public class TracingRestTemplateInterceptorTest {
 
     @Test
     public void testErrorUnknownHostException() {
-        String url = "http://www.abcfoobar.bar/baz";
-        {
-            try {
-                RestTemplate restTemplate = new RestTemplate();
-                restTemplate.setInterceptors(Collections.<ClientHttpRequestInterceptor>singletonList(
-                        new TracingRestTemplateInterceptor(mockTracer)));
-                restTemplate.getForEntity(url, String.class);
-            } catch (ResourceAccessException ex) {
-                //ok UnknownHostException
-            }
+        String url = "http://nonexisting.example.com";
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            restTemplate.setInterceptors(Collections.<ClientHttpRequestInterceptor>singletonList(
+                    new TracingRestTemplateInterceptor(mockTracer)));
+            restTemplate.getForEntity(url, String.class);
+        } catch (ResourceAccessException ex) {
+            //ok UnknownHostException
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
