@@ -65,32 +65,33 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
             tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS,
                     new HttpHeadersCarrier(httpRequest.getHeaders()));
 
-            try {
-                for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+            for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                try {
                     spanDecorator.onRequest(httpRequest, span);
+                } catch (RuntimeException ex) {
+                    log.log(Level.SEVERE, "Exception during decorating span", ex);
                 }
-            } catch (RuntimeException ex) {
-                log.log(Level.SEVERE, "Exception during decorating span", ex);
             }
 
             try {
                 httpResponse = execution.execute(httpRequest, body);
             } catch (Exception ex) {
-                try {
-                    for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                    try {
                         spanDecorator.onError(httpRequest, ex, span);
+                    } catch (RuntimeException exDecorator) {
+                        log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
                     }
-                } catch (RuntimeException exDecorator) {
-                    log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
                 }
                 throw ex;
             }
-            try {
-                for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+
+            for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                try {
                     spanDecorator.onResponse(httpRequest, httpResponse, span);
+                } catch (RuntimeException ex) {
+                    log.log(Level.SEVERE, "Exception during decorating span", ex);
                 }
-            } catch (RuntimeException ex) {
-                log.log(Level.SEVERE, "Exception during decorating span", ex);
             }
         } finally {
             span.finish();
