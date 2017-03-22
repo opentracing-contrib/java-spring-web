@@ -1,4 +1,4 @@
-package io.opentracing.contrib.spring.web;
+package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
@@ -26,18 +26,8 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 public class ServerTracingAutoConfiguration {
     private static final Logger log = Logger.getLogger(ServerTracingAutoConfiguration.class.getName());
 
-    @Autowired
-    private Tracer tracer;
-
     @Bean
-    @ConditionalOnMissingBean(Tracer.class)
-    public Tracer noopTracer() {
-        log.info("Tracer bean is not configured! Switching to " + NoopTracer.class.getName());
-        return NoopTracerFactory.create();
-    }
-
-    @Bean
-    public FilterRegistrationBean tracingFilter() {
+    public FilterRegistrationBean tracingFilter(Tracer tracer) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
                 TracingFilter.class + " mapped to " + "/*");
 
@@ -53,7 +43,7 @@ public class ServerTracingAutoConfiguration {
     }
 
     @Bean
-    public WebMvcConfigurerAdapter tracingHandlerInterceptor() {
+    public WebMvcConfigurerAdapter tracingHandlerInterceptor(final Tracer tracer) {
         log.info("Creating " + WebMvcConfigurerAdapter.class.getSimpleName() + " bean with " +
                 TracingHandlerInterceptor.class);
 
