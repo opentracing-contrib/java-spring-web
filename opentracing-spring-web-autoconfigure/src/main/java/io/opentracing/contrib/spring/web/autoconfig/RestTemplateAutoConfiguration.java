@@ -1,4 +1,4 @@
-package io.opentracing.contrib.spring.web;
+package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.ArrayList;
 import java.util.List;
