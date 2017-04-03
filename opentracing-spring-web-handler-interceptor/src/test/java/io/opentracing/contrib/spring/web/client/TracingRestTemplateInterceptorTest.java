@@ -22,6 +22,8 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import io.opentracing.Span;
+import io.opentracing.contrib.spanmanager.DefaultSpanManager;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
@@ -128,6 +130,27 @@ public class TracingRestTemplateInterceptorTest {
                 Long.parseLong(responseEntity.getHeaders().getFirst("traceId")));
         Assert.assertEquals(mockSpans.get(0).context().spanId(),
                 Long.parseLong(responseEntity.getHeaders().getFirst("spanId")));
+    }
+
+    @Test
+    public void testParentSpan() {
+        {
+            Span parent = mockTracer.buildSpan("parent").start();
+            DefaultSpanManager.getInstance().activate(parent);
+
+            String url = "http://localhost/foo";
+            mockServer.expect(MockRestRequestMatchers.requestTo(url))
+                    .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
+                    .andRespond(MockRestResponseCreators.withSuccess());
+            restTemplate.getForEntity(url, String.class);
+
+            parent.finish();
+        }
+
+        List<MockSpan> mockSpans = mockTracer.finishedSpans();
+        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(mockSpans.get(0).parentId(), mockSpans.get(1).context().spanId());
+        Assert.assertEquals(mockSpans.get(0).context().traceId(), mockSpans.get(1).context().traceId());
     }
 
     @Test

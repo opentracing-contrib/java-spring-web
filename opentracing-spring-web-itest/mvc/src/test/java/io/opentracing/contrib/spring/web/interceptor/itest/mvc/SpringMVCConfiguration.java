@@ -1,5 +1,6 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.mvc;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.ServletContextEvent;
@@ -10,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,6 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
@@ -70,6 +74,14 @@ public class SpringMVCConfiguration extends WebMvcConfigurerAdapter implements S
         resolver.setPrefix("/WEB-INF/jsp/");
         resolver.setSuffix(".jsp");
         return resolver;
+    }
+
+    @Bean
+    public RestTemplate restTemplate(Tracer tracer) {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.setInterceptors(Collections.<ClientHttpRequestInterceptor>singletonList(
+                new TracingRestTemplateInterceptor(tracer)));
+        return restTemplate;
     }
 
     @Override
