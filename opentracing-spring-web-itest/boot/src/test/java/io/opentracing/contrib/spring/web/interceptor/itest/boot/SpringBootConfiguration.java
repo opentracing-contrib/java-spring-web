@@ -7,17 +7,20 @@ import javax.servlet.Filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
@@ -48,6 +51,12 @@ public class SpringBootConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public Filter exceptionFilter() {
         return new ExceptionFilter();
+    }
+
+    @Bean
+    public RestTemplate restTemplate(RestTemplateBuilder builder, Tracer tracer) {
+        return builder.additionalInterceptors(new TracingRestTemplateInterceptor(tracer))
+                .build();
     }
 
     @Override

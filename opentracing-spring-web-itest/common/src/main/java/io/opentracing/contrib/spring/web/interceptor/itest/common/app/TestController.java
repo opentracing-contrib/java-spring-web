@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -33,10 +34,12 @@ public class TestController {
     public static final String MAPPED_EXCEPTION_MESSAGE = "mappedExceptionMessage";
 
     private Tracer tracer;
+    private RestTemplate restTemplate;
 
     @Autowired
-    public TestController(Tracer tracer){
+    public TestController(Tracer tracer, RestTemplate restTemplate){
         this.tracer = tracer;
+        this.restTemplate = restTemplate;
     }
 
     @RequestMapping("/sync")

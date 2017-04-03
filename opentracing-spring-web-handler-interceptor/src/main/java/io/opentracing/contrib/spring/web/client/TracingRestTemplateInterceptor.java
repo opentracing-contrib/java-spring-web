@@ -14,6 +14,8 @@ import org.springframework.http.client.ClientHttpResponse;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 
@@ -28,6 +30,7 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
 
     private Tracer tracer;
     private List<RestTemplateSpanDecorator> spanDecorators;
+    private SpanManager spanManager = DefaultSpanManager.getInstance();
 
     /**
      * @param tracer tracer
@@ -53,10 +56,11 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
         Tracer.SpanBuilder spanBuilder = tracer.buildSpan(httpRequest.getMethod().toString())
                 .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
 
-        // TODO add parent span via in-process propagation
-//        if (parent-is-present) {
-//            spanBuilder.asChildOf(parent);
-//        }
+        // link with parent span
+        SpanManager.ManagedSpan parentSpan = spanManager.current();
+        if (parentSpan.getSpan() != null) {
+            spanBuilder.asChildOf(parentSpan.getSpan());
+        }
 
         Span span = spanBuilder.start();
         ClientHttpResponse httpResponse;
