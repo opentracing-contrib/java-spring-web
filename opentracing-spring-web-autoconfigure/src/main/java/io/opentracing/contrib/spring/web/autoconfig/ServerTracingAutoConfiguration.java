@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.logging.Logger;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
+import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 /**
@@ -29,7 +31,7 @@ public class ServerTracingAutoConfiguration {
                 TracingFilter.class + " mapped to " + "/*");
 
         TracingFilter tracingFilter = new TracingFilter(tracer,
-                Arrays.asList(io.opentracing.contrib.web.servlet.filter.SpanDecorator.STANDARD_TAGS));
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS));
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");
@@ -48,7 +50,7 @@ public class ServerTracingAutoConfiguration {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(new TracingHandlerInterceptor(tracer,
-                        Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_TAGS)));
+                        Collections.singletonList(HandlerInterceptorSpanDecorator.STANDARD_TAGS)));
                 super.addInterceptors(registry);
             }
         };

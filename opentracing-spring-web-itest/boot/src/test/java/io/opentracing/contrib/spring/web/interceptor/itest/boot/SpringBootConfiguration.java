@@ -1,6 +1,6 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.boot;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.Filter;
@@ -27,6 +27,7 @@ import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionF
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.WebSecurityConfig;
+import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 
@@ -74,7 +75,7 @@ public class SpringBootConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public FilterRegistrationBean tracingFilter() {
         TracingFilter tracingFilter = new TracingFilter(tracer,
-                Arrays.asList(io.opentracing.contrib.web.servlet.filter.SpanDecorator.STANDARD_TAGS));
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS));
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");
