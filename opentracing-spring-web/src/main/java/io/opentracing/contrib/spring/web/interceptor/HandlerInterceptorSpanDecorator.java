@@ -17,7 +17,7 @@ import io.opentracing.Span;
  *
  * @author Pavol Loffay
  */
-public interface SpanDecorator {
+public interface HandlerInterceptorSpanDecorator {
 
     /**
      * This is called in
@@ -45,7 +45,7 @@ public interface SpanDecorator {
     /**
      * Standard tags used with Web Servlet Tracing Filter
      */
-    SpanDecorator STANDARD_TAGS = new SpanDecorator() {
+    HandlerInterceptorSpanDecorator STANDARD_TAGS = new HandlerInterceptorSpanDecorator() {
 
         @Override
         public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span) {

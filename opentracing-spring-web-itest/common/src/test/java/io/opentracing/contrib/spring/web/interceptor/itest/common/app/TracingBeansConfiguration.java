@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.mock.MockTracer;
 
 /**
@@ -23,7 +23,7 @@ public class TracingBeansConfiguration {
     }
 
     @Bean
-    public List<SpanDecorator> spanDecorators() {
-        return Arrays.asList(SpanDecorator.STANDARD_TAGS);
+    public List<HandlerInterceptorSpanDecorator> spanDecorators() {
+        return Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_TAGS);
     }
 }

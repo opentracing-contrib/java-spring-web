@@ -36,7 +36,7 @@ Configuration needs to add `TracingFilter` and `TracingHandlerInterceptor`. Both
 are required!
 
 Tracing interceptor can be instantiated manually or injected via CDI, but
-it needs beans of type `Tracer` and `List<SpanDecorator>` configured.
+it needs bean of type `Tracer` configured.
 
 Java based configuration:
 ```java
@@ -49,12 +49,12 @@ public class MVCConfiguration extends WebMvcConfigurerAdapter {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new TracingHandlerInterceptor(tracer, Arrays.asList(SpanDecorator.STANDARD_TAGS)));
+        registry.addInterceptor(new TracingHandlerInterceptor(tracer));
     }
 
     @Bean
     public FilterRegistrationBean tracingFilter() {
-        TracingFilter tracingFilter = new TracingFilter(tracer, Arrays.asList(io.opentracing.contrib.web.servlet.filter.SpanDecorator.STANDARD_TAGS));
+        TracingFilter tracingFilter = new TracingFilter(tracer);
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");
