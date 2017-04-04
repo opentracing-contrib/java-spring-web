@@ -21,7 +21,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
-import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
@@ -43,7 +43,7 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 public class SpringBootConfiguration extends WebMvcConfigurerAdapter {
 
     @Autowired
-    private List<SpanDecorator> spanDecorators;
+    private List<HandlerInterceptorSpanDecorator> spanDecorators;
 
     @Autowired
     private Tracer tracer;

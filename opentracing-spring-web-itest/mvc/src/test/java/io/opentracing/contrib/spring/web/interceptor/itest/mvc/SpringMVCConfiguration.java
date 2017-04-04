@@ -22,7 +22,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
-import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestInterceptor;
@@ -41,7 +41,7 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 public class SpringMVCConfiguration extends WebMvcConfigurerAdapter implements ServletContextListener {
 
     @Autowired
-    private List<SpanDecorator> spanDecorators;
+    private List<HandlerInterceptorSpanDecorator> spanDecorators;
 
     @Autowired
     private Tracer tracer;

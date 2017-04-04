@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -38,14 +39,22 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     static final String CONTINUED_SERVER_SPAN = TracingHandlerInterceptor.class.getName() + ".continuedServerSpan";
 
     private Tracer tracer;
-    private List<SpanDecorator> decorators;
+    private List<HandlerInterceptorSpanDecorator> decorators;
+
+    /**
+     * @param tracer
+     */
+    @Autowired
+    public TracingHandlerInterceptor(Tracer tracer) {
+        this(tracer, Collections.singletonList(HandlerInterceptorSpanDecorator.STANDARD_TAGS));
+    }
 
     /**
      * @param tracer tracer
      * @param decorators span decorators
      */
     @Autowired
-    public TracingHandlerInterceptor(Tracer tracer, List<SpanDecorator> decorators) {
+    public TracingHandlerInterceptor(Tracer tracer, List<HandlerInterceptorSpanDecorator> decorators) {
         this.tracer = tracer;
         this.decorators = new ArrayList<>(decorators);
     }
@@ -88,7 +97,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
-        for (SpanDecorator decorator: decorators) {
+        for (HandlerInterceptorSpanDecorator decorator: decorators) {
             decorator.onPreHandle(httpServletRequest, handler, serverSpan);
         }
 
@@ -118,7 +127,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             serverSpan = ((InterceptorSpanWrapper)httpServletRequest.getAttribute(CONTINUED_SERVER_SPAN)).get();
         }
 
-        for (SpanDecorator decorator: decorators) {
+        for (HandlerInterceptorSpanDecorator decorator: decorators) {
             decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, serverSpan);
         }
 

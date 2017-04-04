@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
@@ -48,7 +48,7 @@ public class ServerTracingAutoConfiguration {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(new TracingHandlerInterceptor(tracer,
-                        Arrays.asList(SpanDecorator.STANDARD_TAGS)));
+                        Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_TAGS)));
                 super.addInterceptors(registry);
             }
         };

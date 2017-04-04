@@ -18,7 +18,7 @@ import org.springframework.http.HttpMethod;
 import com.jayway.awaitility.Awaitility;
 import com.jayway.awaitility.Duration;
 
-import io.opentracing.contrib.spring.web.interceptor.SpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
@@ -349,12 +349,12 @@ public abstract class AbstractBaseITests {
                 "afterCompletion"));
 
         Assert.assertEquals("forward",
-                mockSpan.logEntries().get(0).fields().get(SpanDecorator.HandlerUtils.HANDLER_METHOD_NAME));
+                mockSpan.logEntries().get(0).fields().get(HandlerInterceptorSpanDecorator.HandlerUtils.HANDLER_METHOD_NAME));
         Assert.assertEquals("sync",
-                mockSpan.logEntries().get(1).fields().get(SpanDecorator.HandlerUtils.HANDLER_METHOD_NAME));
-        Assert.assertTrue(mockSpan.logEntries().get(2).fields().get(SpanDecorator.HandlerUtils.HANDLER)
+                mockSpan.logEntries().get(1).fields().get(HandlerInterceptorSpanDecorator.HandlerUtils.HANDLER_METHOD_NAME));
+        Assert.assertTrue(mockSpan.logEntries().get(2).fields().get(HandlerInterceptorSpanDecorator.HandlerUtils.HANDLER)
                 .toString().contains("sync"));
-        Assert.assertTrue(mockSpan.logEntries().get(3).fields().get(SpanDecorator.HandlerUtils.HANDLER)
+        Assert.assertTrue(mockSpan.logEntries().get(3).fields().get(HandlerInterceptorSpanDecorator.HandlerUtils.HANDLER)
                 .toString().contains("forward"));
     }
 
