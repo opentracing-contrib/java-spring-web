@@ -14,7 +14,7 @@
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>opentracing-spring-web-handler-interceptor</artifactId>
+      <artifactId>opentracing-spring-web</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

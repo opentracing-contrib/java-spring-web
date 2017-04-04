@@ -7,7 +7,7 @@
     <version>0.0.2-SNAPSHOT</version>
   </parent>
 
-  <artifactId>opentracing-spring-web-handler-interceptor</artifactId>
+  <artifactId>opentracing-spring-web</artifactId>
 
   <dependencies>
     <dependency>
