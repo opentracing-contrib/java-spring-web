@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.awaitility.Awaitility;
+import org.awaitility.Duration;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,9 +16,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-
-import com.jayway.awaitility.Awaitility;
-import com.jayway.awaitility.Duration;
 
 import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
@@ -416,6 +415,16 @@ public abstract class AbstractBaseITests {
         Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
 
         assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+    }
+
+    @Test
+    public void testExcludePattern() throws InterruptedException {
+        {
+            getRestTemplate().getForEntity("/health", String.class);
+            Thread.sleep(100); // wait some time to be sure that span is not created
+        }
+
+        Assert.assertTrue(TracingBeansConfiguration.mockTracer.finishedSpans().isEmpty());
     }
 
     public static Callable<Integer> reportedSpansSize() {

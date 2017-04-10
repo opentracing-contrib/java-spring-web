@@ -99,7 +99,7 @@ public class TracingRestTemplateInterceptorTest {
         Assert.assertEquals("GET", mockSpan.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals(url, mockSpan.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(200, mockSpan.tags().get(Tags.HTTP_STATUS.getKey()));
-        Assert.assertEquals((short)4000, mockSpan.tags().get(Tags.PEER_PORT.getKey()));
+        Assert.assertEquals(4000, mockSpan.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals(0, mockSpan.logEntries().size());
     }
 

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.awaitility.Awaitility;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -14,8 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-
-import com.jayway.awaitility.Awaitility;
 
 import io.opentracing.contrib.spring.web.interceptor.itest.common.AbstractBaseITests;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;

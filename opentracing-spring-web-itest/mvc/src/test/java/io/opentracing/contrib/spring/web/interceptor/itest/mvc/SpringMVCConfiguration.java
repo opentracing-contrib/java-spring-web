@@ -1,7 +1,9 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.mvc;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -28,7 +30,9 @@ import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestContro
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestInterceptor;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.WebSecurityConfig;
+import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
+import io.opentracing.util.GlobalTracer;
 
 /**
  * @author Pavol Loffay
@@ -46,8 +50,10 @@ public class SpringMVCConfiguration extends WebMvcConfigurerAdapter implements S
     @Autowired
     private Tracer tracer;
 
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        GlobalTracer.register(tracer);
         registry.addInterceptor(new TracingHandlerInterceptor(tracer, spanDecorators));
         registry.addInterceptor(new TestInterceptor());
     }
@@ -86,7 +92,9 @@ public class SpringMVCConfiguration extends WebMvcConfigurerAdapter implements S
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        sce.getServletContext().setAttribute(TracingFilter.TRACER, TracingBeansConfiguration.mockTracer);
+        sce.getServletContext().setAttribute(TracingFilter.SPAN_DECORATORS,
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS));
+        sce.getServletContext().setAttribute(TracingFilter.SKIP_PATTERN, Pattern.compile("/health"));
     }
 
     @Override
