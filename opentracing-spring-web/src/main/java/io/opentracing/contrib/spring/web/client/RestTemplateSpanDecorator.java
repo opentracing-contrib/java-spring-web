@@ -69,7 +69,7 @@ public interface RestTemplateSpanDecorator {
             Tags.HTTP_METHOD.set(span, request.getMethod().toString());
 
             if (request.getURI().getPort() != -1) {
-                Tags.PEER_PORT.set(span, (short)request.getURI().getPort());
+                Tags.PEER_PORT.set(span, request.getURI().getPort());
             }
         }
 

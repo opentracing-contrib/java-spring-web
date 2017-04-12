@@ -2,6 +2,7 @@ package io.opentracing.contrib.spring.web.interceptor.itest.boot;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.servlet.Filter;
 
@@ -75,7 +76,7 @@ public class SpringBootConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public FilterRegistrationBean tracingFilter() {
         TracingFilter tracingFilter = new TracingFilter(tracer,
-                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS));
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS), Pattern.compile("/health"));
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");

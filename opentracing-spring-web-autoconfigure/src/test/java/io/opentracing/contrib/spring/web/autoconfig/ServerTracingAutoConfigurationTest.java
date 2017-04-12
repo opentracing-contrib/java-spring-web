@@ -2,6 +2,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.concurrent.Callable;
 
+import org.awaitility.Awaitility;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
@@ -13,8 +14,6 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import com.jayway.awaitility.Awaitility;
 
 import io.opentracing.mock.MockTracer;
 

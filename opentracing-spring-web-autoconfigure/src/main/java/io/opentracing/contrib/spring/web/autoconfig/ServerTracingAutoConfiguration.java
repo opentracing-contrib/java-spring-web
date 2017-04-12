@@ -1,6 +1,5 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Logger;
 
@@ -26,12 +25,19 @@ public class ServerTracingAutoConfiguration {
     private static final Logger log = Logger.getLogger(ServerTracingAutoConfiguration.class.getName());
 
     @Bean
-    public FilterRegistrationBean tracingFilter(Tracer tracer) {
+    @ConditionalOnMissingBean(WebTracingConfiguration.class)
+    public WebTracingConfiguration tracerAutoConfiguration() {
+        return WebTracingConfiguration.builder()
+                .withSkipPattern(WebTracingConfiguration.DEFAULT_SKIP_PATTERN).build();
+    }
+
+    @Bean
+    public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingConfiguration tracingConfiguration) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
-                TracingFilter.class + " mapped to " + "/*");
+                TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.getSkipPattern());
 
         TracingFilter tracingFilter = new TracingFilter(tracer,
-                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS));
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS), tracingConfiguration.getSkipPattern());
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");
