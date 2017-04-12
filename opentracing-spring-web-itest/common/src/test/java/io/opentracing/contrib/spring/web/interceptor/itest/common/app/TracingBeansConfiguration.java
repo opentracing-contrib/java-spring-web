@@ -3,6 +3,7 @@ package io.opentracing.contrib.spring.web.interceptor.itest.common.app;
 import java.util.Arrays;
 import java.util.List;
 
+import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,7 +16,7 @@ import io.opentracing.mock.MockTracer;
 @Configuration
 public class TracingBeansConfiguration {
 
-    public static final MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+    public static final MockTracer mockTracer = Mockito.spy(new MockTracer(MockTracer.Propagator.TEXT_MAP));
 
     @Bean
     public MockTracer mockTracerBean() {

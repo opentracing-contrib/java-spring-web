@@ -1,5 +1,9 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.common;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -12,6 +16,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +42,7 @@ public abstract class AbstractBaseITests {
     @Before
     public void beforeTest() {
         TracingBeansConfiguration.mockTracer.reset();
+        Mockito.reset(TracingBeansConfiguration.mockTracer);
     }
 
     protected abstract String getUrl(String path);
@@ -49,6 +55,7 @@ public abstract class AbstractBaseITests {
             getRestTemplate().getForEntity("/sync", String.class);
             Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
+
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
@@ -421,9 +428,9 @@ public abstract class AbstractBaseITests {
     public void testExcludePattern() throws InterruptedException {
         {
             getRestTemplate().getForEntity("/health", String.class);
-            Thread.sleep(100); // wait some time to be sure that span is not created
         }
 
+        verify(TracingBeansConfiguration.mockTracer, never()).buildSpan(anyString());
         Assert.assertTrue(TracingBeansConfiguration.mockTracer.finishedSpans().isEmpty());
     }
 
