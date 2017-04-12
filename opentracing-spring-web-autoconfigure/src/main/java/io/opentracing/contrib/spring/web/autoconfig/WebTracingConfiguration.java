@@ -8,10 +8,14 @@ import java.util.regex.Pattern;
 public class WebTracingConfiguration {
     public static final Pattern DEFAULT_SKIP_PATTERN = Pattern.compile("/health|/favicon\\.ico");
 
-    public final Pattern skipPattern;
+    private Pattern skipPattern;
 
     private WebTracingConfiguration(Builder builder) {
         this.skipPattern = builder.skipPattern;
+    }
+
+    public Pattern getSkipPattern() {
+        return skipPattern;
     }
 
     public static Builder builder() {

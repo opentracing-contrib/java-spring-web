@@ -34,10 +34,10 @@ public class ServerTracingAutoConfiguration {
     @Bean
     public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingConfiguration tracingConfiguration) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
-                TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.skipPattern);
+                TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.getSkipPattern());
 
         TracingFilter tracingFilter = new TracingFilter(tracer,
-                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS), tracingConfiguration.skipPattern);
+                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS), tracingConfiguration.getSkipPattern());
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.addUrlPatterns("/*");
