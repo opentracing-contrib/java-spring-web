@@ -100,5 +100,5 @@ Follow instructions in [RELEASE](RELEASE.md)
 
    [ci-img]: https://travis-ci.org/opentracing-contrib/java-spring-web.svg?branch=master
    [ci]: https://travis-ci.org/opentracing-contrib/java-spring-web
-   [maven-img]: https://img.shields.io/maven-central/v/io.opentracing.contrib/opentracing-spring-web-handler-interceptor.svg?maxAge=2592000
-   [maven]: http://search.maven.org/#search%7Cga%7C1%7Copentracing-spring-web-handler-interceptor
+   [maven-img]: https://img.shields.io/maven-central/v/io.opentracing.contrib/opentracing-spring-web.svg?maxAge=2592000
+   [maven]: http://search.maven.org/#search%7Cga%7C1%7Copentracing-spring-web
