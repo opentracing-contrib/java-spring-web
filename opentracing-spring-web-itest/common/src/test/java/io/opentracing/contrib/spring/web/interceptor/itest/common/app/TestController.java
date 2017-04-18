@@ -42,6 +42,11 @@ public class TestController {
         this.restTemplate = restTemplate;
     }
 
+    @RequestMapping("/health")
+    public String health() {
+        return "Woohoo!";
+    }
+
     @RequestMapping("/sync")
     public String sync() {
         return "sync";
