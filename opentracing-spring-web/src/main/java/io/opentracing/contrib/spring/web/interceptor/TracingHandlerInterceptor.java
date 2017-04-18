@@ -97,8 +97,10 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             }
         }
 
-        for (HandlerInterceptorSpanDecorator decorator: decorators) {
-            decorator.onPreHandle(httpServletRequest, handler, serverSpan);
+        if (filterSpan.isTraced()) {
+            for (HandlerInterceptorSpanDecorator decorator : decorators) {
+                decorator.onPreHandle(httpServletRequest, handler, serverSpan);
+            }
         }
 
         return true;
@@ -127,8 +129,10 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             serverSpan = ((InterceptorSpanWrapper)httpServletRequest.getAttribute(CONTINUED_SERVER_SPAN)).get();
         }
 
-        for (HandlerInterceptorSpanDecorator decorator: decorators) {
-            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, serverSpan);
+        if (filterSpan.isTraced()) {
+            for (HandlerInterceptorSpanDecorator decorator : decorators) {
+                decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, serverSpan);
+            }
         }
 
         if (filterSpan.isFinished()) {

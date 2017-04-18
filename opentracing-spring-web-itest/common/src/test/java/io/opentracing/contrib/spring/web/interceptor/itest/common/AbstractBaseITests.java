@@ -21,6 +21,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
@@ -427,7 +429,8 @@ public abstract class AbstractBaseITests {
     @Test
     public void testExcludePattern() throws InterruptedException {
         {
-            getRestTemplate().getForEntity("/health", String.class);
+            ResponseEntity<String> response = getRestTemplate().getForEntity("/health", String.class);
+            Assert.assertEquals(HttpStatus.OK, response.getStatusCode());
         }
 
         verify(TracingBeansConfiguration.mockTracer, never()).buildSpan(anyString());
