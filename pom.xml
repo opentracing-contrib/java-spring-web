@@ -50,11 +50,13 @@
     <version.org.springframework.web>4.3.6.RELEASE</version.org.springframework.web>
     <version.org.springframework.web.security>4.1.4.RELEASE</version.org.springframework.web.security>
 
+    <!-- plugins -->
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
     <version.maven-jar-plugin>3.0.2</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>2.10.4</version.maven-javadoc-plugin>
     <version.maven-release-plugin>2.5.3</version.maven-release-plugin>
     <version.maven-source-plugin>3.0.1</version.maven-source-plugin>
+    <version.io.takari-maven>0.3.4</version.io.takari-maven>
     <version.io.zikin.centralsync-maven-plugin>0.1.0</version.io.zikin.centralsync-maven-plugin>
   </properties>
 
@@ -129,6 +131,17 @@
   </distributionManagement>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <!-- mvn -N io.takari:maven:wrapper -Dmaven=3.5.0 -->
+        <plugin>
+          <groupId>io.takari</groupId>
+          <artifactId>maven</artifactId>
+          <version>${version.io.takari-maven}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     <plugins>
       <plugin>
         <artifactId>maven-release-plugin</artifactId>
