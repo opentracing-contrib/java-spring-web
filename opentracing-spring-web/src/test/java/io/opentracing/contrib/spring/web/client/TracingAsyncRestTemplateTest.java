@@ -13,9 +13,7 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -53,16 +51,19 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
 
     @Test
     public void testMultipleRequests() throws InterruptedException, ExecutionException {
-        final MockSpan parentSpan = mockTracer.buildSpan("foo").start();
-
         final String url = "http://localhost:8080/foo";
         int numberOfCalls = 1000;
         mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(url))
                 .andRespond(MockRestResponseCreators.withSuccess());
 
+        Map<Long, MockSpan> parentSpans = new LinkedHashMap<>(numberOfCalls);
+
         ExecutorService executorService = Executors.newFixedThreadPool(100);
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         for (int i = 0; i < numberOfCalls; i++) {
+            final MockSpan parentSpan = mockTracer.buildSpan("foo").start();
+            parentSpans.put(parentSpan.context().spanId(), parentSpan);
+
             futures.add(executorService.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -80,12 +81,12 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
 
-        parentSpan.finish();
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
-        Assert.assertEquals(numberOfCalls + 1, mockSpans.size());
+        Assert.assertEquals(numberOfCalls, mockSpans.size());
 
         for (int i = 0; i < numberOfCalls; i++) {
             MockSpan mockSpan = mockSpans.get(0);
+            MockSpan parentSpan = parentSpans.get(mockSpan.parentId());
 
             Assert.assertEquals(parentSpan.context().traceId(), mockSpan.context().traceId());
             Assert.assertEquals(parentSpan.context().spanId(), mockSpan.parentId());
