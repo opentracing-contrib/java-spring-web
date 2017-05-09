@@ -52,7 +52,7 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
     }
 
     @Test
-    public void testMultipleRequests() throws InterruptedException {
+    public void testMultipleRequests() throws InterruptedException, ExecutionException {
         final MockSpan parentSpan = mockTracer.buildSpan("foo").start();
 
         final String url = "http://localhost:8080/foo";
@@ -73,6 +73,10 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         }
 
         // wait to finish all calls
+        for (Future<?> future: futures) {
+            future.get();
+        }
+
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
 
