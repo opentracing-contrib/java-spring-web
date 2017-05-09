@@ -1,6 +1,8 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.mock.MockTracer;
+import org.awaitility.Awaitility;
+import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +15,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.AsyncRestTemplate;
 
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -54,12 +57,17 @@ public class AsyncRestTemplateAutoConfigurationTest {
 
     @Test
     public void testTracingAsyncRequest() throws ExecutionException, InterruptedException {
-        try {
-            asyncRestTemplate.getForEntity("http://example.com", String.class).get();
-        } catch (ExecutionException ex) {
-            //ok UnknownHostException
-        }
+        asyncRestTemplate.getForEntity("http://example.com", String.class).get();
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         Assert.assertEquals(1, mockTracer.finishedSpans().size());
     }
 
+    public Callable<Integer> reportedSpansSize() {
+        return new Callable<Integer>() {
+            @Override
+            public Integer call() throws Exception {
+                return mockTracer.finishedSpans().size();
+            }
+        };
+    }
 }
