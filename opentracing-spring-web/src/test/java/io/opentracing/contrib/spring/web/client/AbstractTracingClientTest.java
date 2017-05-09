@@ -64,6 +64,7 @@ public abstract class AbstractTracingClientTest<Template> {
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(5, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
@@ -88,6 +89,7 @@ public abstract class AbstractTracingClientTest<Template> {
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(6, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
@@ -165,6 +167,7 @@ public abstract class AbstractTracingClientTest<Template> {
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(5, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
