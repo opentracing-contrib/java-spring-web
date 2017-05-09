@@ -2,8 +2,10 @@ package io.opentracing.contrib.spring.web.client;
 
 import io.opentracing.contrib.spanmanager.DefaultSpanManager;
 import io.opentracing.mock.MockSpan;
+import io.opentracing.tag.Tags;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.internal.matchers.Contains;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.test.web.client.ExpectedCount;
@@ -51,9 +53,9 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
 
     @Test
     public void testMultipleRequests() throws InterruptedException, ExecutionException {
-        final String url = "http://localhost:8080/foo";
+        final String url = "http://localhost:8080/foo/";
         int numberOfCalls = 1000;
-        mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(url))
+        mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(new Contains("/foo")))
                 .andRespond(MockRestResponseCreators.withSuccess());
 
         Map<Long, MockSpan> parentSpans = new LinkedHashMap<>(numberOfCalls);
@@ -61,14 +63,17 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         ExecutorService executorService = Executors.newFixedThreadPool(100);
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         for (int i = 0; i < numberOfCalls; i++) {
+            final String requestUrl = url + i;
+
             final MockSpan parentSpan = mockTracer.buildSpan("foo").start();
+            parentSpan.setTag("request-url", requestUrl);
             parentSpans.put(parentSpan.context().spanId(), parentSpan);
 
             futures.add(executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     DefaultSpanManager.getInstance().activate(parentSpan);
-                    client.getForEntity(url, String.class);
+                    client.getForEntity(requestUrl, String.class);
                 }
             }));
         }
@@ -85,12 +90,15 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         Assert.assertEquals(numberOfCalls, mockSpans.size());
 
         for (int i = 0; i < numberOfCalls; i++) {
-            MockSpan mockSpan = mockSpans.get(0);
-            MockSpan parentSpan = parentSpans.get(mockSpan.parentId());
+            MockSpan childSpan = mockSpans.get(i);
+            MockSpan parentSpan = parentSpans.get(childSpan.parentId());
 
-            Assert.assertEquals(parentSpan.context().traceId(), mockSpan.context().traceId());
-            Assert.assertEquals(parentSpan.context().spanId(), mockSpan.parentId());
-            Assert.assertEquals(0, mockSpan.generatedErrors().size());
+            Assert.assertEquals(parentSpan.tags().get("request-url"), childSpan.tags().get(Tags.HTTP_URL.getKey()));
+
+            Assert.assertEquals(parentSpan.context().traceId(), childSpan.context().traceId());
+            Assert.assertEquals(parentSpan.context().spanId(), childSpan.parentId());
+            Assert.assertEquals(0, childSpan.generatedErrors().size());
+            Assert.assertEquals(0, parentSpan.generatedErrors().size());
         }
     }
 }
