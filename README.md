@@ -3,16 +3,15 @@
 # OpenTracing Spring Web Instrumentation
 
 This library provides instrumentation for Spring  Web applications. It creates tracing data for 
-server requests and also client requests (`RestTemplate`).
+server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`). Active server span can
+be accessed via [SpanManager](https://github.com/opentracing-contrib/java-spanmanager).
 
-## How does this work?
+## How does the server tracing work?
 
 Server span is started in [Web Servlet Filter](https://github.com/opentracing-contrib/java-web-servlet-filter),
-then tracing interceptor adds spring related logs, for instance when `preHandle` and `afterCompletion` for given
-handler were called. There are use case when spring boot invokes a handler after a request processing in filter
-finished, in this case interceptor starts a new span as `followsFrom` which references initial span created in
-the servlet filter.
-
+then tracing interceptor adds spring related tags and logs. There are use case when spring boot invokes a handler after 
+a request processing in filter finished, in this case interceptor starts a new span as `followsFrom` 
+which references the initial span created in the servlet filter.
 
 ## Configuration
 
@@ -27,7 +26,7 @@ If you are using Spring Boot the easiest way how to configure OpenTracing instru
 
 ```
 Just provide an OpenTracing tracer bean and all required configuration is automatically
-done for you. It also instruments all `RestTemplate` beans.
+done for you. It also instruments all `RestTemplate` and `AsyncRestTemplate` beans.
 
 ### Manual configuration
 
@@ -72,12 +71,18 @@ XML based configuration can be used too. Filter can be also directly defined in 
 ```java
 RestTemplate restTemplate = new RestTemplate();
 restTemplate.setInterceptors(Collections.singletonList(new TracingRestTemplateInterceptor(tracer)));
+
+// the same applies for AsyncRestTemplate 
 ```
 
-## Access server span context
+## Access server span
 ```java
 @RequestMapping("/hello")
 public String hello(HttpServletRequest request) {
+    // using SpanManager
+    SpanManager.ManagedSpan parentSpan = DefaultSpanManager.getInstance().current();
+
+    // or 
     SpanContext serverSpanContext = TracingHandlerInterceptor.serverSpanContext(request);
 
     Span span = tracer.buildSpan("localSpan");
