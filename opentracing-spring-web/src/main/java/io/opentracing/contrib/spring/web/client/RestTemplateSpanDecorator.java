@@ -1,16 +1,15 @@
 package io.opentracing.contrib.spring.web.client;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
+import io.opentracing.Span;
+import io.opentracing.tag.Tags;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Decorate span by adding tags/logs or operation name change.
@@ -51,7 +50,7 @@ public interface RestTemplateSpanDecorator {
      * @param ex exception
      * @param span span
      */
-    void onError(HttpRequest request,  Exception ex, Span span);
+    void onError(HttpRequest request,  Throwable ex, Span span);
 
     /**
      * This decorator adds set of standard tags to the span.
@@ -83,7 +82,7 @@ public interface RestTemplateSpanDecorator {
         }
 
         @Override
-        public void onError(HttpRequest httpRequest, Exception ex, Span span) {
+        public void onError(HttpRequest httpRequest, Throwable ex, Span span) {
             Tags.ERROR.set(span, Boolean.TRUE);
             span.log(errorLogs(ex));
         }

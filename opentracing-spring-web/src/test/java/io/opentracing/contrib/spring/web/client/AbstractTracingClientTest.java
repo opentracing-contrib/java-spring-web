@@ -1,9 +1,10 @@
 package io.opentracing.contrib.spring.web.client;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
+import io.opentracing.Span;
+import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.tag.Tags;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,30 +23,25 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import io.opentracing.Span;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.mock.MockTracer;
-import io.opentracing.tag.Tags;
-
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 /**
  * @author Pavol Loffay
  */
-public class TracingRestTemplateInterceptorTest {
+public abstract class AbstractTracingClientTest<Template> {
 
-    protected MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+    protected interface Client<Template> {
+        <T> ResponseEntity<T> getForEntity(String url, Class<T> type);
+        Template template();
+    }
 
+    protected final MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
     protected MockRestServiceServer mockServer;
-    protected RestTemplate restTemplate;
+    protected Client<Template> client;
 
     @Before
     public void before() {
-        restTemplate = new RestTemplate();
-
-        restTemplate.setInterceptors(Collections.<ClientHttpRequestInterceptor>singletonList(
-                new TracingRestTemplateInterceptor(mockTracer)));
-
-        mockServer = MockRestServiceServer.bindTo(restTemplate).build();
         mockTracer.reset();
     }
 
@@ -61,13 +57,14 @@ public class TracingRestTemplateInterceptorTest {
             mockServer.expect(MockRestRequestMatchers.requestTo(url))
                     .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                     .andRespond(MockRestResponseCreators.withSuccess());
-            restTemplate.getForEntity(url, String.class);
+            client.getForEntity(url, String.class);
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(5, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
@@ -85,13 +82,14 @@ public class TracingRestTemplateInterceptorTest {
             mockServer.expect(MockRestRequestMatchers.requestTo(url))
                     .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                     .andRespond(MockRestResponseCreators.withSuccess());
-            restTemplate.getForEntity(url, String.class);
+            client.getForEntity(url, String.class);
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(6, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
@@ -122,7 +120,7 @@ public class TracingRestTemplateInterceptorTest {
                     }
                 });
 
-        ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> responseEntity = client.getForEntity(url, String.class);
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
@@ -142,7 +140,7 @@ public class TracingRestTemplateInterceptorTest {
             mockServer.expect(MockRestRequestMatchers.requestTo(url))
                     .andExpect(MockRestRequestMatchers.method(HttpMethod.GET))
                     .andRespond(MockRestResponseCreators.withSuccess());
-            restTemplate.getForEntity(url, String.class);
+            client.getForEntity(url, String.class);
 
             parent.finish();
         }
@@ -169,6 +167,7 @@ public class TracingRestTemplateInterceptorTest {
         Assert.assertEquals(1, mockSpans.size());
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("GET", mockSpan.operationName());
         Assert.assertEquals(5, mockSpan.tags().size());
         Assert.assertEquals(RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME,
                 mockSpan.tags().get(Tags.COMPONENT.getKey()));
