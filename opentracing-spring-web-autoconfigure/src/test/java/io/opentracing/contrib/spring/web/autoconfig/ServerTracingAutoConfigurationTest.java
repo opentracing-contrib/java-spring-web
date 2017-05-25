@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.opentracing.mock.MockTracer;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 
 /**
  * @author Pavol Loffay
@@ -31,7 +32,7 @@ public class ServerTracingAutoConfigurationTest {
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer();
+            return new MockTracer(new ThreadLocalActiveSpanSource());
         }
     }
 
@@ -44,9 +45,9 @@ public class ServerTracingAutoConfigurationTest {
     @Test
     public void testRequestIsTraced() {
         testRestTemplate.getForEntity("/hello", String.class);
-        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
 
-        Assert.assertEquals(2, mockTracer.finishedSpans().size());
+        Assert.assertEquals(1, mockTracer.finishedSpans().size());
     }
 
     public Callable<Integer> reportedSpansSize() {
