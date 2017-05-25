@@ -21,7 +21,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 
 /**
  * @author Pavol Loffay
@@ -63,8 +62,7 @@ public class TestController {
     public String localSpan(HttpServletRequest request) {
         io.opentracing.Tracer.SpanBuilder spanBuilder = tracer.buildSpan("localSpan");
         Span localSpan = spanBuilder
-                .asChildOf(TracingHandlerInterceptor.serverSpanContext(request))
-                .start();
+                .startManual();
         localSpan.finish();
 
         return "sync";

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
 import io.opentracing.mock.MockTracer;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 
 /**
  * @author Pavol Loffay
@@ -16,7 +17,8 @@ import io.opentracing.mock.MockTracer;
 @Configuration
 public class TracingBeansConfiguration {
 
-    public static final MockTracer mockTracer = Mockito.spy(new MockTracer(MockTracer.Propagator.TEXT_MAP));
+    public static final MockTracer mockTracer = Mockito.spy(new MockTracer(new ThreadLocalActiveSpanSource(),
+            MockTracer.Propagator.TEXT_MAP));
 
     @Bean
     public MockTracer mockTracerBean() {

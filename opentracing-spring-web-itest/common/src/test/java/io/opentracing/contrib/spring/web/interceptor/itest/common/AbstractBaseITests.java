@@ -138,10 +138,10 @@ public abstract class AbstractBaseITests {
     public void testControllerException() throws Exception {
         {
             getRestTemplate().getForEntity("/exception", String.class);
-            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
-        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
@@ -161,24 +161,16 @@ public abstract class AbstractBaseITests {
         Assert.assertEquals(TestController.EXCEPTION_MESSAGE,
                 span.logEntries().get(2).fields().get("message"));
         Assert.assertNotNull(span.logEntries().get(2).fields().get("stack"));
-
-        span = mockSpans.get(1);
-        Assert.assertEquals(0, span.tags().size());
-        Assert.assertEquals(mockSpans.get(0).context().spanId(), span.parentId());
-        Assert.assertEquals(0, span.tags().size());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-        Assert.assertEquals("BasicErrorController",
-                span.logEntries().get(0).fields().get("handler.class_simple_name"));
     }
 
     @Test
     public void testControllerMappedException() throws Exception {
         {
             getRestTemplate().getForEntity("/mappedException", String.class);
-            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
-        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
@@ -192,24 +184,16 @@ public abstract class AbstractBaseITests {
         Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
 
         assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-
-        span = mockSpans.get(1);
-        Assert.assertEquals(0, span.tags().size());
-        Assert.assertEquals(mockSpans.get(0).context().spanId(), span.parentId());
-        Assert.assertEquals(0, span.tags().size());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-        Assert.assertEquals("BasicErrorController",
-                span.logEntries().get(0).fields().get("handler.class_simple_name"));
     }
 
     @Test
     public void testFilterException() throws Exception {
         {
             getRestTemplate().getForEntity(ExceptionFilter.EXCEPTION_URL, String.class);
-            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
-        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
@@ -232,24 +216,16 @@ public abstract class AbstractBaseITests {
         Assert.assertNotNull(span.logEntries().get(0).fields().get("stack"));
         Assert.assertEquals(ExceptionFilter.EXCEPTION_MESSAGE,
                 span.logEntries().get(0).fields().get("message"));
-
-        span = mockSpans.get(1);
-        Assert.assertEquals(0, span.tags().size());
-        Assert.assertEquals(mockSpans.get(0).context().spanId(), span.parentId());
-        Assert.assertEquals(0, span.tags().size());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-        Assert.assertEquals("BasicErrorController",
-                span.logEntries().get(0).fields().get("handler.class_simple_name"));
     }
 
     @Test
     public void testNoURLMapping() {
         {
             getRestTemplate().getForEntity("/nouUrlMapping", String.class);
-            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
-        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
@@ -257,24 +233,16 @@ public abstract class AbstractBaseITests {
         Assert.assertEquals(404, span.tags().get(Tags.HTTP_STATUS.getKey()));
 
         assertLogEvents(span.logEntries(), Collections.<String>emptyList());
-
-        span = mockSpans.get(1);
-        Assert.assertEquals(0, span.tags().size());
-        Assert.assertEquals(mockSpans.get(0).context().spanId(), span.parentId());
-        Assert.assertEquals(0, span.tags().size());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-        Assert.assertEquals("BasicErrorController",
-                span.logEntries().get(0).fields().get("handler.class_simple_name"));
     }
 
     @Test
     public void testSecuredURLUnAuthorized() throws Exception {
         {
             getRestTemplate().getForEntity("/secured", String.class);
-            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
-        Assert.assertEquals(2, mockSpans.size());
+        Assert.assertEquals(1, mockSpans.size());
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
@@ -288,14 +256,6 @@ public abstract class AbstractBaseITests {
 
 //        request does not hit any controller
         assertLogEvents(span.logEntries(), Collections.<String>emptyList());
-
-        span = mockSpans.get(1);
-        Assert.assertEquals(0, span.tags().size());
-        Assert.assertEquals(mockSpans.get(0).context().spanId(), span.parentId());
-        Assert.assertEquals(0, span.tags().size());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
-        Assert.assertEquals("BasicErrorController",
-                span.logEntries().get(0).fields().get("handler.class_simple_name"));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.ActiveSpan;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.tag.Tags;
 import org.junit.Assert;
@@ -15,8 +15,17 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 /**
  * @author Pavol Loffay
@@ -58,24 +67,26 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(new Contains("/foo")))
                 .andRespond(MockRestResponseCreators.withSuccess());
 
-        Map<Long, MockSpan> parentSpans = new LinkedHashMap<>(numberOfCalls);
-
         ExecutorService executorService = Executors.newFixedThreadPool(100);
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         for (int i = 0; i < numberOfCalls; i++) {
             final String requestUrl = url + i;
 
-            final MockSpan parentSpan = mockTracer.buildSpan("foo").start();
+            final ActiveSpan parentSpan = mockTracer.buildSpan("foo").startActive();
             parentSpan.setTag("request-url", requestUrl);
-            parentSpans.put(parentSpan.context().spanId(), parentSpan);
+
+            final ActiveSpan.Continuation cont = parentSpan.capture();
 
             futures.add(executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    DefaultSpanManager.getInstance().activate(parentSpan);
-                    client.getForEntity(requestUrl, String.class);
+                    try (ActiveSpan span = cont.activate()) {
+                        client.getForEntity(requestUrl, String.class);
+                    }
                 }
             }));
+
+            parentSpan.deactivate();
         }
 
         // wait to finish all calls
@@ -87,18 +98,36 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         executorService.shutdown();
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
-        Assert.assertEquals(numberOfCalls, mockSpans.size());
+        Assert.assertEquals(numberOfCalls * 2, mockSpans.size());
 
-        for (int i = 0; i < numberOfCalls; i++) {
-            MockSpan childSpan = mockSpans.get(i);
-            MockSpan parentSpan = parentSpans.get(childSpan.parentId());
+        final List<MockSpan> parentSpans = new ArrayList<>();
+        final Map<Long, MockSpan> childSpans = new HashMap<>();
 
-            Assert.assertEquals(parentSpan.tags().get("request-url"), childSpan.tags().get(Tags.HTTP_URL.getKey()));
+        mockSpans.forEach(new Consumer<MockSpan>() {
+            @Override
+            public void accept(MockSpan s) {
+                if (s.tags().containsKey("request-url")) {
+                    parentSpans.add(s);
+                } else {
+                    childSpans.put(s.parentId(), s);
+                }
+            }
+        });
 
-            Assert.assertEquals(parentSpan.context().traceId(), childSpan.context().traceId());
-            Assert.assertEquals(parentSpan.context().spanId(), childSpan.parentId());
-            Assert.assertEquals(0, childSpan.generatedErrors().size());
-            Assert.assertEquals(0, parentSpan.generatedErrors().size());
-        }
+        Assert.assertEquals(numberOfCalls, parentSpans.size());
+        Assert.assertEquals(numberOfCalls, childSpans.size());
+
+        parentSpans.forEach(new Consumer<MockSpan>() {
+            @Override
+            public void accept(MockSpan parentSpan) {
+                MockSpan childSpan = childSpans.get(parentSpan.context().spanId());
+                Assert.assertEquals(parentSpan.tags().get("request-url"), childSpan.tags().get(Tags.HTTP_URL.getKey()));
+
+                Assert.assertEquals(parentSpan.context().traceId(), childSpan.context().traceId());
+                Assert.assertEquals(parentSpan.context().spanId(), childSpan.parentId());
+                Assert.assertEquals(0, childSpan.generatedErrors().size());
+                Assert.assertEquals(0, parentSpan.generatedErrors().size());
+            }
+        });
     }
 }
