@@ -87,7 +87,8 @@ public abstract class AbstractBaseITests {
 
         MockSpan span = mockSpans.get(0);
         Assert.assertEquals("GET", span.operationName());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion"));
     }
 
     @Test
@@ -110,7 +111,8 @@ public abstract class AbstractBaseITests {
         Assert.assertEquals(202, span.tags().get(Tags.HTTP_STATUS.getKey()));
         Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
 
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion"));
     }
 
     @Test

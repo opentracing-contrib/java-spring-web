@@ -11,3 +11,13 @@
 hs_err_pid*
 
 target
+
+# IntelliJ project files
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.settings
+
