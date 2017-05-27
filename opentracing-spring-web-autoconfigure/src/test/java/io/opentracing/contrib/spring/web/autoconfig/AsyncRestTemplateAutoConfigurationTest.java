@@ -1,6 +1,8 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.mock.MockTracer;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
+
 import org.awaitility.Awaitility;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
@@ -32,7 +34,7 @@ public class AsyncRestTemplateAutoConfigurationTest {
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer();
+            return new MockTracer(new ThreadLocalActiveSpanSource());
         }
 
         @Bean

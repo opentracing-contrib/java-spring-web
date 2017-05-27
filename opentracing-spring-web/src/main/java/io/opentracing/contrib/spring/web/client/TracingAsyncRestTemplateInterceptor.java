@@ -1,9 +1,7 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.Span;
+import io.opentracing.ActiveSpan;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -28,7 +26,6 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
     private static final Logger log = Logger.getLogger(TracingAsyncRestTemplateInterceptor.class.getName());
 
     private Tracer tracer;
-    private SpanManager spanManager = DefaultSpanManager.getInstance();
     private List<RestTemplateSpanDecorator> spanDecorators;
 
     public TracingAsyncRestTemplateInterceptor() {
@@ -50,16 +47,8 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                                                           byte[] body,
                                                           AsyncClientHttpRequestExecution execution) throws IOException {
 
-        Tracer.SpanBuilder spanBuilder = tracer.buildSpan(httpRequest.getMethod().toString())
-                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
-
-        // link with parent span
-        SpanManager.ManagedSpan parentSpan = spanManager.current();
-        if (parentSpan.getSpan() != null) {
-            spanBuilder.asChildOf(parentSpan.getSpan());
-        }
-
-        final Span span = spanBuilder.start();
+        final ActiveSpan span = tracer.buildSpan(httpRequest.getMethod().toString())
+                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive();
         tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpRequest.getHeaders()));
 
         for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
@@ -72,31 +61,37 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
 
         ListenableFuture<ClientHttpResponse> future = execution.executeAsync(httpRequest, body);
 
+        final ActiveSpan.Continuation cont = span.capture();
+
         future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
             @Override
             public void onSuccess(ClientHttpResponse httpResponse) {
-                for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
-                    try {
-                        spanDecorator.onResponse(httpRequest, httpResponse, span);
-                    } catch (RuntimeException exDecorator) {
-                        log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                try (ActiveSpan activeSpan = cont.activate()) {
+                    for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
+                        try {
+                            spanDecorator.onResponse(httpRequest, httpResponse, span);
+                        } catch (RuntimeException exDecorator) {
+                            log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                        }
                     }
                 }
-                span.finish();
             }
 
             @Override
             public void onFailure(Throwable ex) {
-                for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
-                    try {
-                        spanDecorator.onError(httpRequest, ex, span);
-                    } catch (RuntimeException exDecorator) {
-                        log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                try (ActiveSpan activeSpan = cont.activate()) {
+                    for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
+                        try {
+                            spanDecorator.onError(httpRequest, ex, span);
+                        } catch (RuntimeException exDecorator) {
+                            log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                        }
                     }
                 }
-                span.finish();
             }
         });
+
+        span.deactivate();
 
         return future;
     }
