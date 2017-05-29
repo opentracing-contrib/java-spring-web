@@ -1,10 +1,11 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.Span;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
+import io.opentracing.ActiveSpan;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,7 +37,8 @@ public abstract class AbstractTracingClientTest<Template> {
         Template template();
     }
 
-    protected final MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+    protected final MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(),
+            MockTracer.Propagator.TEXT_MAP);
     protected MockRestServiceServer mockServer;
     protected Client<Template> client;
 
@@ -133,8 +135,7 @@ public abstract class AbstractTracingClientTest<Template> {
     @Test
     public void testParentSpan() {
         {
-            Span parent = mockTracer.buildSpan("parent").start();
-            DefaultSpanManager.getInstance().activate(parent);
+            ActiveSpan parent = mockTracer.buildSpan("parent").startActive();
 
             String url = "http://localhost/foo";
             mockServer.expect(MockRestRequestMatchers.requestTo(url))
@@ -142,7 +143,7 @@ public abstract class AbstractTracingClientTest<Template> {
                     .andRespond(MockRestResponseCreators.withSuccess());
             client.getForEntity(url, String.class);
 
-            parent.finish();
+            parent.deactivate();
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();

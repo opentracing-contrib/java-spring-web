@@ -15,6 +15,7 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import io.opentracing.mock.MockTracer;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 
 /**
  * @author Pavol Loffay
@@ -30,7 +31,7 @@ public class RestTemplateAutoConfigurationTest {
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer();
+            return new MockTracer(new ThreadLocalActiveSpanSource());
         }
 
         @Bean

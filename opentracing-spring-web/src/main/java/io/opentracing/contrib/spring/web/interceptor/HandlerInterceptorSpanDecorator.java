@@ -1,16 +1,14 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import io.opentracing.BaseSpan;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 
-import io.opentracing.Span;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * SpanDecorator to decorate span at different stages in filter processing.
@@ -27,7 +25,7 @@ public interface HandlerInterceptorSpanDecorator {
      * @param handler handler
      * @param span current span
      */
-    void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span);
+    void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span);
 
     /**
      * This is called in
@@ -40,7 +38,19 @@ public interface HandlerInterceptorSpanDecorator {
      * @param span current span
      */
     void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
-                           Exception ex, Span span);
+                           Exception ex, BaseSpan<?> span);
+
+    /**
+     * This is called in
+     * {@link org.springframework.web.servlet.AsyncHandlerInterceptor#afterConcurrentHandlingStarted(HttpServletRequest, HttpServletResponse, Object)}
+     *
+     * @param httpServletRequest request
+     * @param httpServletResponse response
+     * @param handler handler
+     * @param span current span
+     */
+    void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
+                           BaseSpan<?> span);
 
     /**
      * Standard tags used with Web Servlet Tracing Filter
@@ -48,7 +58,7 @@ public interface HandlerInterceptorSpanDecorator {
     HandlerInterceptorSpanDecorator STANDARD_TAGS = new HandlerInterceptorSpanDecorator() {
 
         @Override
-        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span) {
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
             Map<String, Object> logs = new HashMap<>(3);
             logs.put("event", "preHandle");
             logs.put(HandlerUtils.HANDLER, handler);
@@ -68,9 +78,18 @@ public interface HandlerInterceptorSpanDecorator {
 
         @Override
         public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                      Object handler, Exception ex, Span span) {
+                                      Object handler, Exception ex, BaseSpan<?> span) {
             Map<String, Object> logs = new HashMap<>(2);
             logs.put("event", "afterCompletion");
+            logs.put(HandlerUtils.HANDLER, handler);
+            span.log(logs);
+        }
+
+        @Override
+        public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
+                HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
+            Map<String, Object> logs = new HashMap<>(2);
+            logs.put("event", "afterConcurrentHandlingStarted");
             logs.put(HandlerUtils.HANDLER, handler);
             span.log(logs);
         }
