@@ -118,19 +118,6 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         }
     }
 
-    /**
-     * It checks whether a request should be traced or not.
-     *
-     * @param httpServletRequest request
-     * @param httpServletResponse response
-     * @param handler handler
-     * @return whether request should be traced or not
-     */
-    protected boolean isTraced(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                               Object handler) {
-        return true;
-    }
-
     private Deque<ActiveSpan> getActiveSpanStack(HttpServletRequest request) {
         Deque<ActiveSpan> stack = (Deque<ActiveSpan>) request.getAttribute(ACTIVE_SPAN_STACK);
         if (stack == null) {
