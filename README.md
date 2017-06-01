@@ -2,9 +2,8 @@
 
 # OpenTracing Spring Web Instrumentation
 
-This library provides instrumentation for Spring  Web applications. It creates tracing data for 
-server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`). Active server span can
-be accessed via [SpanManager](https://github.com/opentracing-contrib/java-spanmanager).
+This library provides instrumentation for Spring  Web applications (Boot and MVC). It creates tracing data for 
+server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`).
 
 ## How does the server tracing work?
 
@@ -79,17 +78,13 @@ restTemplate.setInterceptors(Collections.singletonList(new TracingRestTemplateIn
 ```java
 @RequestMapping("/hello")
 public String hello(HttpServletRequest request) {
-    // using SpanManager
-    SpanManager.ManagedSpan parentSpan = DefaultSpanManager.getInstance().current();
+    ActiveSpan serverSpan = tracer.activeSpan();
 
-    // or 
-    SpanContext serverSpanContext = TracingHandlerInterceptor.serverSpanContext(request);
-
-    Span span = tracer.buildSpan("localSpan");
-            .asChildOf(serverSpanContext)
+    ActiveSpan span = tracer.buildSpan("localSpan");
+            .asChildOf(serverSpan.context())
             .start();
-
-    span.finish();
+    span.deactivate();
+    
     return "Hello world!";
 }
 ```
