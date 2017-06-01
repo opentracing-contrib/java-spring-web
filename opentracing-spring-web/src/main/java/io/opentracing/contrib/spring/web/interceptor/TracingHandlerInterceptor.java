@@ -1,22 +1,20 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
-import java.util.logging.Logger;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
+import io.opentracing.ActiveSpan;
 import io.opentracing.References;
-import io.opentracing.Span;
-import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.web.servlet.filter.SpanWrapper;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 /**
@@ -26,17 +24,12 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
  * <p>HTTP tags and logged errors are added in {@link TracingFilter}. This interceptor adds only
  * spring related logs (handler class/method).
  *
- * <p>Server span context can be accessed via {@link #serverSpanContext(ServletRequest)}.
- *
  * @author Pavol Loffay
  */
 public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
-    private static final Logger log = Logger.getLogger(TracingHandlerInterceptor.class.getName());
 
-    static final String AFTER_CONCURRENT_HANDLING_STARTED = TracingHandlerInterceptor.class.getName() +
-            ".afterConcurrentHandlingStarted";
-
-    static final String CONTINUED_SERVER_SPAN = TracingHandlerInterceptor.class.getName() + ".continuedServerSpan";
+    private static final String ACTIVE_SPAN_STACK = TracingHandlerInterceptor.class.getName() + ".activeSpanStack";
+    private static final String CONTINUATION_FROM_ASYNC_STARTED = TracingHandlerInterceptor.class.getName() + ".continuation";
 
     private Tracer tracer;
     private List<HandlerInterceptorSpanDecorator> decorators;
@@ -63,103 +56,74 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
-        Object spanAttribute = httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_WRAPPER);
-        if (!(spanAttribute instanceof SpanWrapper)) {
-            log.severe("Span not found! TracingFilter is not registered!?");
+        // exclude pattern, span is not started in filter
+        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
             return true;
         }
-
-        // skip preHandler after afterConcurrentHandlingStarted
-        if (httpServletRequest.getAttribute(AFTER_CONCURRENT_HANDLING_STARTED) != null) {
-            httpServletRequest.removeAttribute(AFTER_CONCURRENT_HANDLING_STARTED);
-            return true;
-        }
-
-        SpanWrapper filterSpan = (SpanWrapper) spanAttribute;
-
-        Span serverSpan = filterSpan.get();
 
         /**
-         * If span in filter is finished create new span. However we need to check if there is already created span
-         * for this use case.
+         * 1. check if there is an active span, it has been activated in servlet filter or in this interceptor (forward)
+         * 2. if there is no active span then it can be handling of an async request or spring boot default error handling
          */
-        if (filterSpan.isFinished()) {
-            Object continuedSpanAttribute = httpServletRequest.getAttribute(CONTINUED_SERVER_SPAN);
-            if (continuedSpanAttribute == null ||
-                    (continuedSpanAttribute instanceof InterceptorSpanWrapper &&
-                            ((InterceptorSpanWrapper)continuedSpanAttribute).isFinished())) {
-                serverSpan = tracer.buildSpan(httpServletRequest.getMethod())
-                        .addReference(References.FOLLOWS_FROM, filterSpan.get().context())
-                        .start();
-                httpServletRequest.setAttribute(CONTINUED_SERVER_SPAN, new InterceptorSpanWrapper(serverSpan, handler));
-                // override server span context so local span in controllers will be child of it
-                httpServletRequest.setAttribute(TracingFilter.SERVER_SPAN_CONTEXT, serverSpan.context());
-            }
+        ActiveSpan serverSpan = tracer.activeSpan();
+        if (serverSpan != null) {
+            serverSpan = serverSpan.capture().activate();
+        } else if (httpServletRequest.getAttribute(CONTINUATION_FROM_ASYNC_STARTED) != null) {
+            ActiveSpan.Continuation contd = (ActiveSpan.Continuation) httpServletRequest.getAttribute(CONTINUATION_FROM_ASYNC_STARTED);
+            serverSpan = contd.activate();
+            httpServletRequest.removeAttribute(CONTINUATION_FROM_ASYNC_STARTED);
+        } else {
+            // spring boot default error handling, executes interceptor after processing in the filter (ugly huh?)
+            serverSpan = tracer.buildSpan(httpServletRequest.getMethod())
+                    .addReference(References.FOLLOWS_FROM, TracingFilter.serverSpanContext(httpServletRequest))
+                    .startActive();
         }
 
-        if (filterSpan.isTraced()) {
-            for (HandlerInterceptorSpanDecorator decorator : decorators) {
-                decorator.onPreHandle(httpServletRequest, handler, serverSpan);
-            }
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onPreHandle(httpServletRequest, handler, serverSpan);
         }
 
+        Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
+        activeSpanStack.push(serverSpan);
         return true;
     }
 
     @Override
-    public void afterConcurrentHandlingStarted(HttpServletRequest request, HttpServletResponse response,
-                                               Object handler) throws Exception {
-        request.setAttribute(AFTER_CONCURRENT_HANDLING_STARTED, Boolean.TRUE);
+    public void afterConcurrentHandlingStarted (
+            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
+            throws Exception {
+
+        Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
+        ActiveSpan activeSpan = activeSpanStack.pop();
+
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, activeSpan);
+        }
+
+        activeSpan.deactivate();
+        httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, activeSpan.capture());
     }
 
     @Override
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                 Object handler, Exception ex) throws Exception {
 
-        Object spanAttribute = httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_WRAPPER);
-        if (!(spanAttribute instanceof SpanWrapper)) {
-            log.severe("Span not found! TracingFilter is not registered!?");
-            return;
-        }
-
-        SpanWrapper filterSpan = (SpanWrapper) spanAttribute;
-
-        Span serverSpan = filterSpan.get();
-        if (filterSpan.isFinished()) {
-            serverSpan = ((InterceptorSpanWrapper)httpServletRequest.getAttribute(CONTINUED_SERVER_SPAN)).get();
-        }
-
-        if (filterSpan.isTraced()) {
+        Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
+        ActiveSpan activeSpan = activeSpanStack.pop();
+        if (activeSpan != null) {
             for (HandlerInterceptorSpanDecorator decorator : decorators) {
-                decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, serverSpan);
+                decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, activeSpan);
             }
-        }
-
-        if (filterSpan.isFinished()) {
-            ((InterceptorSpanWrapper)httpServletRequest.getAttribute(CONTINUED_SERVER_SPAN)).finish(handler);
+            activeSpan.deactivate();
         }
     }
 
-    /**
-     * It checks whether a request should be traced or not.
-     *
-     * @param httpServletRequest request
-     * @param httpServletResponse response
-     * @param handler handler
-     * @return whether request should be traced or not
-     */
-    protected boolean isTraced(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                               Object handler) {
-        return true;
-    }
-
-    /**
-     * Get context of server span.
-     *
-     * @param servletRequest request
-     * @return span context of server span
-     */
-    public static SpanContext serverSpanContext(ServletRequest servletRequest) {
-        return (SpanContext) servletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT);
+    private Deque<ActiveSpan> getActiveSpanStack(HttpServletRequest request) {
+        Deque<ActiveSpan> stack = (Deque<ActiveSpan>) request.getAttribute(ACTIVE_SPAN_STACK);
+        if (stack == null) {
+            stack = new ArrayDeque<>();
+            request.setAttribute(ACTIVE_SPAN_STACK, stack);
+        }
+        return stack;
     }
 }

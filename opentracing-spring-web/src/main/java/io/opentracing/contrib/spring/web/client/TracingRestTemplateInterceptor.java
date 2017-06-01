@@ -1,9 +1,7 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.Span;
+import io.opentracing.ActiveSpan;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spanmanager.DefaultSpanManager;
-import io.opentracing.contrib.spanmanager.SpanManager;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
@@ -30,7 +28,6 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
 
     private Tracer tracer;
     private List<RestTemplateSpanDecorator> spanDecorators;
-    private SpanManager spanManager = DefaultSpanManager.getInstance();
 
     public TracingRestTemplateInterceptor() {
         this(GlobalTracer.get(), Collections.<RestTemplateSpanDecorator>singletonList(
@@ -58,16 +55,8 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
     public ClientHttpResponse intercept(HttpRequest httpRequest, byte[] body,
                                         ClientHttpRequestExecution execution) throws IOException {
 
-        Tracer.SpanBuilder spanBuilder = tracer.buildSpan(httpRequest.getMethod().toString())
-                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
-
-        // link with parent span
-        SpanManager.ManagedSpan parentSpan = spanManager.current();
-        if (parentSpan.getSpan() != null) {
-            spanBuilder.asChildOf(parentSpan.getSpan());
-        }
-
-        Span span = spanBuilder.start();
+        ActiveSpan span = tracer.buildSpan(httpRequest.getMethod().toString())
+                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive();
         ClientHttpResponse httpResponse;
 
         try {
@@ -103,7 +92,7 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
                 }
             }
         } finally {
-            span.finish();
+            span.deactivate();
         }
 
         return httpResponse;

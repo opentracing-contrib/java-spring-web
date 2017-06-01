@@ -19,9 +19,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
+import io.opentracing.ActiveSpan;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 
 /**
  * @author Pavol Loffay
@@ -49,11 +49,13 @@ public class TestController {
 
     @RequestMapping("/sync")
     public String sync() {
+        verifyActiveSpan();
         return "sync";
     }
 
     @GetMapping(path = "/view")
     public ModelAndView view() {
+        verifyActiveSpan();
         ModelAndView staticView = new ModelAndView();
         staticView.setViewName("staticView");
         return staticView;
@@ -61,10 +63,10 @@ public class TestController {
 
     @RequestMapping("/localSpan")
     public String localSpan(HttpServletRequest request) {
+        verifyActiveSpan();
         io.opentracing.Tracer.SpanBuilder spanBuilder = tracer.buildSpan("localSpan");
         Span localSpan = spanBuilder
-                .asChildOf(TracingHandlerInterceptor.serverSpanContext(request))
-                .start();
+                .startManual();
         localSpan.finish();
 
         return "sync";
@@ -72,16 +74,24 @@ public class TestController {
 
     @RequestMapping("/async")
     public Callable<String> async() {
+        verifyActiveSpan();
+        final ActiveSpan.Continuation cont = tracer.activeSpan().capture();
         return new Callable<String>() {
             public String call() throws Exception {
-                Thread.sleep(1000);
-                return "async";
+                try (ActiveSpan span = cont.activate()) {
+                    if (tracer.activeSpan() == null) {
+                        throw new RuntimeException("No active span");
+                    }
+                    Thread.sleep(1000);
+                    return "async";
+                }
             }
         };
     }
 
     @RequestMapping(value = "/asyncDeferred", method = RequestMethod.GET)
     public  DeferredResult<ResponseEntity<String>> test() {
+        verifyActiveSpan();
         DeferredResult<ResponseEntity<String>> df = new DeferredResult<>();
         df.setResult(ResponseEntity.status(202).body("deferred"));
         return df;
@@ -89,38 +99,52 @@ public class TestController {
 
     @RequestMapping("/secured")
     public String secured() {
+        verifyActiveSpan();
         return  "secured";
     }
 
     @RequestMapping(path = {"/wildcard/{param}/{numericId:[\\d]+}", "/foobar"})
     public String wildcardMapping(@PathVariable String param,  @PathVariable long numericId) {
+        verifyActiveSpan();
         return "wildcard";
     }
 
     @RequestMapping(path = "redirect")
     public ModelAndView redirect(HttpServletResponse response) {
+        verifyActiveSpan();
         return new ModelAndView("redirect:/sync");
     }
 
     @RequestMapping(path = "forward")
     public ModelAndView forward(HttpServletResponse response) {
+        verifyActiveSpan();
         return new ModelAndView("forward:/sync");
     }
 
     @RequestMapping("/exception")
     public String exception() throws Exception {
+        verifyActiveSpan();
         throw new Exception(EXCEPTION_MESSAGE);
     }
 
     @RequestMapping("/mappedException")
     public String businessException() {
+        verifyActiveSpan();
         throw new MappedException(MAPPED_EXCEPTION_MESSAGE);
     }
 
     @ResponseStatus(value = HttpStatus.CONFLICT, reason = "Data integrity violation")
     @ExceptionHandler(MappedException.class)
     public void mappedExceptionHandler(MappedException ex) {
+        verifyActiveSpan();
+
         // Nothing to do
+    }
+
+    private void verifyActiveSpan() {
+        if (tracer.activeSpan() == null) {
+            throw new RuntimeException("No active span");
+        }
     }
 
     public static class MappedException extends RuntimeException {

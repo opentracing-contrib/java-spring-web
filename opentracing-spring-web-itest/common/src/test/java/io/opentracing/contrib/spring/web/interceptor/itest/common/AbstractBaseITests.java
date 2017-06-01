@@ -1,14 +1,11 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.common;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-
+import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
+import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
+import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
+import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.tag.Tags;
 import org.awaitility.Awaitility;
 import org.awaitility.Duration;
 import org.hamcrest.core.IsEqual;
@@ -18,18 +15,16 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 
-import io.opentracing.contrib.spring.web.interceptor.HandlerInterceptorSpanDecorator;
-import io.opentracing.contrib.spring.web.interceptor.itest.common.app.ExceptionFilter;
-import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TestController;
-import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBeansConfiguration;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.tag.Tags;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author Pavol Loffay
@@ -87,7 +82,8 @@ public abstract class AbstractBaseITests {
 
         MockSpan span = mockSpans.get(0);
         Assert.assertEquals("GET", span.operationName());
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion"));
     }
 
     @Test
@@ -110,7 +106,8 @@ public abstract class AbstractBaseITests {
         Assert.assertEquals(202, span.tags().get(Tags.HTTP_STATUS.getKey()));
         Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
 
-        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion"));
     }
 
     @Test
@@ -448,7 +445,7 @@ public abstract class AbstractBaseITests {
 
     public static void assertLogEvents(List<MockSpan.LogEntry> logs, List<String> events) {
         if (logs.size() != events.size()) {
-            Assert.fail(String.format("Logs count does not match: expected %d, actual %d", events.size(), logs.size()));
+            Assert.fail(String.format("Logs count does not match: expected %s, actual %s", events, logs));
         }
 
         for (int i = 0; i < logs.size(); i++) {
