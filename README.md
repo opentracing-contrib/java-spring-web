@@ -14,7 +14,7 @@ which references the initial span created in the servlet filter.
 
 ## Configuration
 
-### Auto-configuration
+### Spring Boot Auto-configuration
 If you are using Spring Boot the easiest way how to configure OpenTracing instrumentation is to use auto-configuration:
 
 ```xml
