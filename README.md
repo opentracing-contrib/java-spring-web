@@ -83,7 +83,7 @@ public String hello(HttpServletRequest request) {
     ActiveSpan span = tracer.buildSpan("localSpan");
             .asChildOf(serverSpan.context())
             .start();
-    span.deactivate;
+    span.deactivate();
     
     return "Hello world!";
 }
