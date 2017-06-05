@@ -110,12 +110,11 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
 
         Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
         ActiveSpan activeSpan = activeSpanStack.pop();
-        if (activeSpan != null) {
-            for (HandlerInterceptorSpanDecorator decorator : decorators) {
-                decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, activeSpan);
-            }
-            activeSpan.deactivate();
+
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, activeSpan);
         }
+        activeSpan.deactivate();
     }
 
     private Deque<ActiveSpan> getActiveSpanStack(HttpServletRequest request) {
