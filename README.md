@@ -9,11 +9,11 @@ server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`
 This project provides instrumentation only for `spring-web` package. In other words it traces only
 HTTP requests made to Spring Boot/WEB app and outgoing requests using Spring RestTemplate. However it allows
 you to use OpenTracing API directly in your code and combine different OpenTracing instrumentations together
-very easy (e.g. [OpenFeign](https://github.com/OpenFeign/feign-opentracing)).
+easily (e.g. [OpenFeign](https://github.com/OpenFeign/feign-opentracing)).
 
 Whereas [spring-cloud-sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) combines
-instrumentations for different frameworks together and you are not allowed to use OpenTracing API or wire
-different instrumentations which are not supported by sleuth (it might be inconvenient).
+instrumentations for different frameworks together. It is not currently possible to use the OpenTracing API, or
+wire different instrumentations that are not supported by sleuth (it might be inconvenient).
 
 ## How does the server tracing work?
 
