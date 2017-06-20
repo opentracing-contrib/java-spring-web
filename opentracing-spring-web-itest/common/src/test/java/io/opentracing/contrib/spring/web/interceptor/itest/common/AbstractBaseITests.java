@@ -58,7 +58,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("sync", span.operationName());
 
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
@@ -81,7 +81,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("async", span.operationName());
         assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
                 "preHandle", "afterCompletion"));
     }
@@ -97,7 +97,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("test", span.operationName());
 
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
@@ -142,7 +142,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("exception", span.operationName());
         Assert.assertEquals(6, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
         Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));
@@ -179,7 +179,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("mappedException", span.operationName());
 
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
@@ -306,7 +306,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("secured", span.operationName());
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
         Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));
@@ -337,6 +337,8 @@ public abstract class AbstractBaseITests {
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
         Assert.assertEquals(2, mockSpans.size());
         assertOnErrors(mockSpans);
+        Assert.assertEquals("redirect", mockSpans.get(0).operationName());
+        Assert.assertEquals("sync", mockSpans.get(1).operationName());
     }
 
     @Test
@@ -350,6 +352,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan mockSpan = mockSpans.get(0);
+        Assert.assertEquals("sync", mockSpan.operationName());
         assertLogEvents(mockSpan.logEntries(), Arrays.asList("preHandle", "preHandle", "afterCompletion",
                 "afterCompletion"));
 
@@ -388,7 +391,7 @@ public abstract class AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("view", span.operationName());
 
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));

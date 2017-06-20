@@ -71,6 +71,7 @@ public interface HandlerInterceptorSpanDecorator {
             metaData = HandlerUtils.methodName(handler);
             if (metaData != null) {
                 logs.put(HandlerUtils.HANDLER_METHOD_NAME, metaData);
+                span.setOperationName(metaData);
             }
 
             span.log(logs);
