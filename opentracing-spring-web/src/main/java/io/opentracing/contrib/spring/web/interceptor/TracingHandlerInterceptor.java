@@ -2,7 +2,7 @@ package io.opentracing.contrib.spring.web.interceptor;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -39,7 +39,8 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
      */
     @Autowired
     public TracingHandlerInterceptor(Tracer tracer) {
-        this(tracer, Collections.singletonList(HandlerInterceptorSpanDecorator.STANDARD_TAGS));
+        this(tracer, Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
+                HandlerInterceptorSpanDecorator.STANDARD_OPERATION));
     }
 
     /**

@@ -53,9 +53,9 @@ public interface HandlerInterceptorSpanDecorator {
                            BaseSpan<?> span);
 
     /**
-     * Standard tags used with Web Servlet Tracing Filter
+     * Decorator to record standard logs, used in conjunction with Web Servlet Tracing Filter to provide tags.
      */
-    HandlerInterceptorSpanDecorator STANDARD_TAGS = new HandlerInterceptorSpanDecorator() {
+    HandlerInterceptorSpanDecorator STANDARD_LOGS = new HandlerInterceptorSpanDecorator() {
 
         @Override
         public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
@@ -71,7 +71,6 @@ public interface HandlerInterceptorSpanDecorator {
             metaData = HandlerUtils.methodName(handler);
             if (metaData != null) {
                 logs.put(HandlerUtils.HANDLER_METHOD_NAME, metaData);
-                span.setOperationName(metaData);
             }
 
             span.log(logs);
@@ -93,6 +92,30 @@ public interface HandlerInterceptorSpanDecorator {
             logs.put("event", "afterConcurrentHandlingStarted");
             logs.put(HandlerUtils.HANDLER, handler);
             span.log(logs);
+        }
+    };
+
+    /**
+     * Decorator to record operation name, used in conjunction with Web Servlet Tracing Filter to provide tags.
+     */
+    HandlerInterceptorSpanDecorator STANDARD_OPERATION = new HandlerInterceptorSpanDecorator() {
+
+        @Override
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
+            String metaData = HandlerUtils.methodName(handler);
+            if (metaData != null) {
+                span.setOperationName(metaData);
+            }
+        }
+
+        @Override
+        public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                      Object handler, Exception ex, BaseSpan<?> span) {
+        }
+
+        @Override
+        public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
+                HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
         }
     };
 

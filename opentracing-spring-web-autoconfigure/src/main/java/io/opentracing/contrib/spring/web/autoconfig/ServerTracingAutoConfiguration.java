@@ -1,5 +1,6 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.logging.Logger;
 
@@ -56,7 +57,8 @@ public class ServerTracingAutoConfiguration {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(new TracingHandlerInterceptor(tracer,
-                        Collections.singletonList(HandlerInterceptorSpanDecorator.STANDARD_TAGS)));
+                        Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
+                                HandlerInterceptorSpanDecorator.STANDARD_OPERATION)));
                 super.addInterceptors(registry);
             }
         };
