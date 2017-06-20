@@ -58,7 +58,7 @@ public class ServerTracingAutoConfiguration {
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(new TracingHandlerInterceptor(tracer,
                         Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
-                                HandlerInterceptorSpanDecorator.STANDARD_OPERATION)));
+                                HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME)));
                 super.addInterceptors(registry);
             }
         };

@@ -40,7 +40,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     @Autowired
     public TracingHandlerInterceptor(Tracer tracer) {
         this(tracer, Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
-                HandlerInterceptorSpanDecorator.STANDARD_OPERATION));
+                HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME));
     }
 
     /**

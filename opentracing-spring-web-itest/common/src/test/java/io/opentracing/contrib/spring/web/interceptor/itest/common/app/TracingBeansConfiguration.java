@@ -28,6 +28,6 @@ public class TracingBeansConfiguration {
     @Bean
     public List<HandlerInterceptorSpanDecorator> spanDecorators() {
         return Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
-                HandlerInterceptorSpanDecorator.STANDARD_OPERATION);
+                HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME);
     }
 }

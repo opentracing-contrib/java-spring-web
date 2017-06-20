@@ -53,7 +53,7 @@ public interface HandlerInterceptorSpanDecorator {
                            BaseSpan<?> span);
 
     /**
-     * Decorator to record standard logs, used in conjunction with Web Servlet Tracing Filter to provide tags.
+     * Decorator to record details about the handler as log events recorded on the span.
      */
     HandlerInterceptorSpanDecorator STANDARD_LOGS = new HandlerInterceptorSpanDecorator() {
 
@@ -96,9 +96,9 @@ public interface HandlerInterceptorSpanDecorator {
     };
 
     /**
-     * Decorator to record operation name, used in conjunction with Web Servlet Tracing Filter to provide tags.
+     * Use the handler's method name as the span's operation name.
      */
-    HandlerInterceptorSpanDecorator STANDARD_OPERATION = new HandlerInterceptorSpanDecorator() {
+    HandlerInterceptorSpanDecorator HANDLER_METHOD_OPERATION_NAME = new HandlerInterceptorSpanDecorator() {
 
         @Override
         public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {

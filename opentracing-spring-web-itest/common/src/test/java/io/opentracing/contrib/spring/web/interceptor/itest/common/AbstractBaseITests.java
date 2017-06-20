@@ -129,6 +129,7 @@ public abstract class AbstractBaseITests {
         MockSpan span = mockSpans.get(0);
         Assert.assertEquals(1, span.parentId());
         Assert.assertEquals(345, span.context().traceId());
+        Assert.assertEquals("sync", span.operationName());
     }
 
     @Test
@@ -325,6 +326,7 @@ public abstract class AbstractBaseITests {
         }
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());
+        Assert.assertEquals("wildcardMapping", mockSpans.get(0).operationName());
         assertOnErrors(mockSpans);
     }
 
@@ -376,8 +378,11 @@ public abstract class AbstractBaseITests {
         Assert.assertEquals(2, mockSpans.size());
         assertOnErrors(mockSpans);
 
-        Assert.assertEquals(mockSpans.get(0).context().traceId(), mockSpans.get(1).context().traceId());
-        Assert.assertEquals(mockSpans.get(0).parentId(), mockSpans.get(1).context().spanId());
+        MockSpan childSpan = mockSpans.get(0);
+        MockSpan parentSpan = mockSpans.get(1);
+        Assert.assertEquals("localSpan", parentSpan.operationName());
+        Assert.assertEquals(childSpan.context().traceId(), parentSpan.context().traceId());
+        Assert.assertEquals(childSpan.parentId(), parentSpan.context().spanId());
     }
 
     @Test
