@@ -19,6 +19,7 @@ import org.springframework.http.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -339,8 +340,9 @@ public abstract class AbstractBaseITests {
         List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
         Assert.assertEquals(2, mockSpans.size());
         assertOnErrors(mockSpans);
-        Assert.assertEquals("redirect", mockSpans.get(0).operationName());
-        Assert.assertEquals("sync", mockSpans.get(1).operationName());
+        Assert.assertEquals(new HashSet<String>(Arrays.asList("redirect","sync")),
+                new HashSet<String>(Arrays.asList(mockSpans.get(0).operationName(),
+                        mockSpans.get(1).operationName())));
     }
 
     @Test
