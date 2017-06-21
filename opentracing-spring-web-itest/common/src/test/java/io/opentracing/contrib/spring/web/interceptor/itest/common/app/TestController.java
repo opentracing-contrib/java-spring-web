@@ -100,7 +100,7 @@ public class TestController {
     @RequestMapping("/secured")
     public String secured() {
         verifyActiveSpan();
-        return  "secured";
+        return "secured";
     }
 
     @RequestMapping(path = {"/wildcard/{param}/{numericId:[\\d]+}", "/foobar"})
@@ -128,7 +128,7 @@ public class TestController {
     }
 
     @RequestMapping("/mappedException")
-    public String businessException() {
+    public String mappedException() {
         verifyActiveSpan();
         throw new MappedException(MAPPED_EXCEPTION_MESSAGE);
     }

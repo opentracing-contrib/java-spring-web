@@ -152,7 +152,7 @@ public class MVCJettyITest extends AbstractBaseITests {
         assertOnErrors(mockSpans);
 
         MockSpan span = mockSpans.get(0);
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("mappedException", span.operationName());
 
         Assert.assertEquals(5, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
@@ -176,7 +176,7 @@ public class MVCJettyITest extends AbstractBaseITests {
 
         MockSpan span = mockSpans.get(0);
 
-        Assert.assertEquals("GET", span.operationName());
+        Assert.assertEquals("exception", span.operationName());
         Assert.assertEquals(6, span.tags().size());
         Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
         Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));

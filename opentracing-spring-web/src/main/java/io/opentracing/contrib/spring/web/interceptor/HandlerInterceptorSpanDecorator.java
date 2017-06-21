@@ -53,9 +53,9 @@ public interface HandlerInterceptorSpanDecorator {
                            BaseSpan<?> span);
 
     /**
-     * Standard tags used with Web Servlet Tracing Filter
+     * Decorator to record details about the handler as log events recorded on the span.
      */
-    HandlerInterceptorSpanDecorator STANDARD_TAGS = new HandlerInterceptorSpanDecorator() {
+    HandlerInterceptorSpanDecorator STANDARD_LOGS = new HandlerInterceptorSpanDecorator() {
 
         @Override
         public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
@@ -92,6 +92,30 @@ public interface HandlerInterceptorSpanDecorator {
             logs.put("event", "afterConcurrentHandlingStarted");
             logs.put(HandlerUtils.HANDLER, handler);
             span.log(logs);
+        }
+    };
+
+    /**
+     * Use the handler's method name as the span's operation name.
+     */
+    HandlerInterceptorSpanDecorator HANDLER_METHOD_OPERATION_NAME = new HandlerInterceptorSpanDecorator() {
+
+        @Override
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
+            String metaData = HandlerUtils.methodName(handler);
+            if (metaData != null) {
+                span.setOperationName(metaData);
+            }
+        }
+
+        @Override
+        public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                      Object handler, Exception ex, BaseSpan<?> span) {
+        }
+
+        @Override
+        public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
+                HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
         }
     };
 
