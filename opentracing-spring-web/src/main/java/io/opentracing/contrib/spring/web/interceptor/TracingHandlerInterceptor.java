@@ -53,7 +53,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         this.decorators = new ArrayList<>(decorators);
     }
 
-    private boolean hasSpanStarted(HttpServletRequest httpServletRequest) {
+    static boolean hasSpanStarted(HttpServletRequest httpServletRequest) {
         // exclude pattern, span is not started in filter
         return httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) != null;
     }
