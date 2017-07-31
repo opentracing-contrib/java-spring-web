@@ -2,8 +2,12 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -25,11 +29,26 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 public class ServerTracingAutoConfiguration {
     private static final Logger log = Logger.getLogger(ServerTracingAutoConfiguration.class.getName());
 
+    @Autowired(required=false)
+    @Qualifier("opentracing.http.skipPattern")
+    private Set<String> skipPatterns;
+
     @Bean
     @ConditionalOnMissingBean(WebTracingConfiguration.class)
     public WebTracingConfiguration tracerAutoConfiguration() {
+        Pattern skipPattern = WebTracingConfiguration.DEFAULT_SKIP_PATTERN;
+        if (skipPatterns != null && !skipPatterns.isEmpty()) {
+            StringBuilder pattern = new StringBuilder();
+            for (String p : skipPatterns) {
+                if (pattern.length() > 0) {
+                    pattern.append('|');
+                }
+                pattern.append(p);
+            }
+            skipPattern = Pattern.compile(pattern.toString());
+        }
         return WebTracingConfiguration.builder()
-                .withSkipPattern(WebTracingConfiguration.DEFAULT_SKIP_PATTERN).build();
+                .withSkipPattern(skipPattern).build();
     }
 
     @Bean
