@@ -53,12 +53,16 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         this.decorators = new ArrayList<>(decorators);
     }
 
+    private boolean hasSpanStarted(HttpServletRequest httpServletRequest) {
+        // exclude pattern, span is not started in filter
+        return httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) != null;
+    }
+
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
-        // exclude pattern, span is not started in filter
-        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
+        if (!hasSpanStarted(httpServletRequest)) {
             return true;
         }
 
@@ -94,8 +98,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
-        // exclude pattern, span is not started in filter
-        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
+        if (!hasSpanStarted(httpServletRequest)) {
             return;
         }
 
@@ -114,8 +117,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                 Object handler, Exception ex) throws Exception {
 
-        // exclude pattern, span is not started in filter
-        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
+        if (!hasSpanStarted(httpServletRequest)) {
             return;
         }
 
