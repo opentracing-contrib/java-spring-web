@@ -94,6 +94,11 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
+        // exclude pattern, span is not started in filter
+        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
+            return;
+        }
+
         Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
         ActiveSpan activeSpan = activeSpanStack.pop();
 
@@ -108,6 +113,11 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     @Override
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                 Object handler, Exception ex) throws Exception {
+
+        // exclude pattern, span is not started in filter
+        if (httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) == null) {
+            return;
+        }
 
         Deque<ActiveSpan> activeSpanStack = getActiveSpanStack(httpServletRequest);
         ActiveSpan activeSpan = activeSpanStack.pop();
