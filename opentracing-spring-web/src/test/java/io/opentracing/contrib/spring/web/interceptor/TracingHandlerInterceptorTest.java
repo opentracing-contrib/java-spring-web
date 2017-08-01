@@ -8,39 +8,32 @@ import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import io.opentracing.SpanContext;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 public class TracingHandlerInterceptorTest {
 
     @Test
-    public void testHasSpanStarted() {
+    public void testIsTraced() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT)).thenReturn("");
-        assertTrue(TracingHandlerInterceptor.hasSpanStarted(request));
+        Mockito.when(request.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT)).thenReturn(Mockito.mock(SpanContext.class));
+        assertTrue(TracingHandlerInterceptor.isTraced(request));
     }
 
     @Test
-    public void testHasSpanNotStarted() {
+    public void testIsNotTraced() {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         Mockito.when(request.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT)).thenReturn(null);
-        assertFalse(TracingHandlerInterceptor.hasSpanStarted(request));
+        assertFalse(TracingHandlerInterceptor.isTraced(request));
     }
 
     @Test
-    public void testPreHandleNoSpan() throws Exception {
+    public void testNoSpan() throws Exception {
         HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
         Mockito.when(request.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT)).thenReturn(null);
 
         TracingHandlerInterceptor interceptor = new TracingHandlerInterceptor(null);
         assertTrue(interceptor.preHandle(request, null, null));
-    }
-
-    @Test
-    public void testAfterCompletionNoSpan() throws Exception {
-        HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
-        Mockito.when(request.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT)).thenReturn(null);
-
-        TracingHandlerInterceptor interceptor = new TracingHandlerInterceptor(null);
         interceptor.afterCompletion(request, null, null, null);
     }
 

@@ -14,6 +14,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import io.opentracing.ActiveSpan;
 import io.opentracing.References;
+import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
@@ -53,16 +54,22 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         this.decorators = new ArrayList<>(decorators);
     }
 
-    static boolean hasSpanStarted(HttpServletRequest httpServletRequest) {
+    /**
+     * This method determines whether the HTTP request is being traced.
+     *
+     * @param httpServletRequest The HTTP request
+     * @return Whether the request is being traced
+     */
+    static boolean isTraced(HttpServletRequest httpServletRequest) {
         // exclude pattern, span is not started in filter
-        return httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) != null;
+        return httpServletRequest.getAttribute(TracingFilter.SERVER_SPAN_CONTEXT) instanceof SpanContext;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
-        if (!hasSpanStarted(httpServletRequest)) {
+        if (!isTraced(httpServletRequest)) {
             return true;
         }
 
@@ -98,7 +105,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
             throws Exception {
 
-        if (!hasSpanStarted(httpServletRequest)) {
+        if (!isTraced(httpServletRequest)) {
             return;
         }
 
@@ -117,7 +124,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
                                 Object handler, Exception ex) throws Exception {
 
-        if (!hasSpanStarted(httpServletRequest)) {
+        if (!isTraced(httpServletRequest)) {
             return;
         }
 
