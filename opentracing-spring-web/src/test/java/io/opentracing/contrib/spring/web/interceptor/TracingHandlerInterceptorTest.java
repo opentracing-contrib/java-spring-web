@@ -34,6 +34,7 @@ public class TracingHandlerInterceptorTest {
 
         TracingHandlerInterceptor interceptor = new TracingHandlerInterceptor(null);
         assertTrue(interceptor.preHandle(request, null, null));
+        interceptor.afterConcurrentHandlingStarted(request, null, null);
         interceptor.afterCompletion(request, null, null, null);
     }
 
