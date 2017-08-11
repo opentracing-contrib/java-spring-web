@@ -43,13 +43,11 @@
     <version.io.opentracing>0.30.0</version.io.opentracing>
     <version.io.opentracing.contrib-opentracing-web-servlet-filter>0.0.9</version.io.opentracing.contrib-opentracing-web-servlet-filter>
     <version.io.opentracing.contrib-opentracing-tracerresolver>0.1.1</version.io.opentracing.contrib-opentracing-tracerresolver>
-    <version.javax.servlet-api>3.1.0</version.javax.servlet-api>
     <version.junit>4.12</version.junit>
-    <version.org.eclipse.jetty>9.3.15.v20161220</version.org.eclipse.jetty>
     <version.org.mockito-mockito-all>1.10.19</version.org.mockito-mockito-all>
-    <version.org.springframework.boot>1.4.3.RELEASE</version.org.springframework.boot>
-    <version.org.springframework.web>4.3.6.RELEASE</version.org.springframework.web>
-    <version.org.springframework.web.security>4.1.4.RELEASE</version.org.springframework.web.security>
+    <version.org.springframework.boot>1.4.1.RELEASE</version.org.springframework.boot>
+    <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-dependencies  -->
+    <version.org.springframework>4.3.3.RELEASE</version.org.springframework>
 
     <!-- plugins -->
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
@@ -90,6 +88,14 @@
         <groupId>io.opentracing.contrib</groupId>
         <artifactId>opentracing-web-servlet-filter</artifactId>
         <version>${version.io.opentracing.contrib-opentracing-web-servlet-filter}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${version.org.springframework.boot}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <dependency>

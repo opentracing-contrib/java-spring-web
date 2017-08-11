@@ -18,13 +18,11 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
-      <version>${version.org.springframework.web}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
-      <version>${version.javax.servlet-api}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -36,7 +34,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-test</artifactId>
-      <version>${version.org.springframework.web}</version>
+      <version>${version.org.springframework}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

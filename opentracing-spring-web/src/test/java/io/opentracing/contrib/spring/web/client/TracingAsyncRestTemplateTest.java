@@ -1,8 +1,16 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.ActiveSpan;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.tag.Tags;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.internal.matchers.Contains;
@@ -15,17 +23,9 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
+import io.opentracing.ActiveSpan;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.tag.Tags;
 
 /**
  * @author Pavol Loffay
@@ -57,7 +57,7 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
             }
         };
 
-        mockServer = MockRestServiceServer.bindTo(client.template()).build();
+        mockServer = MockRestServiceServer.bindTo(client.template()).ignoreExpectOrder(true).build();
     }
 
     @Test
