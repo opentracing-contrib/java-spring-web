@@ -90,7 +90,6 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         }
 
         // wait to finish all calls
-        System.out.println(futures.size());
         for (Future<?> future: futures) {
             future.get();
         }
