@@ -1,9 +1,9 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import java.util.logging.Logger;
-
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +18,7 @@ import io.opentracing.util.GlobalTracer;
  */
 @Configuration
 public class TracerAutoConfiguration {
-    private final static Logger log = Logger.getLogger(TracerAutoConfiguration.class.getName());
+    private static final Log log = LogFactory.getLog(TracerAutoConfiguration.class.getName());
 
     @Autowired
     private Tracer tracer;
@@ -56,12 +56,12 @@ public class TracerAutoConfiguration {
                 GlobalTracer.register(resolvedTracer);
             }
         } else {
-            log.warning("GlobalTracer is already registered. For consistency it is best practice to provide " +
+            log.warn("GlobalTracer is already registered. For consistency it is best practice to provide " +
                     "a Tracer bean instead of manually registering it with the GlobalTracer");
         }
 
         Tracer tracerToReturn = GlobalTracer.get();
-        log.warning("Tracer bean is not configured! Switching to " + tracerToReturn);
+        log.warn("Tracer bean is not configured! Switching to " + tracerToReturn);
         return tracerToReturn;
     }
 }

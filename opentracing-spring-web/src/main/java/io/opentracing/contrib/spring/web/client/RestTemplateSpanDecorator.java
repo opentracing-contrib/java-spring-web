@@ -1,15 +1,17 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.BaseSpan;
-import io.opentracing.tag.Tags;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
+import io.opentracing.BaseSpan;
+import io.opentracing.tag.Tags;
 
 /**
  * Decorate span by adding tags/logs or operation name change.
@@ -56,7 +58,7 @@ public interface RestTemplateSpanDecorator {
      * This decorator adds set of standard tags to the span.
      */
     class StandardTags implements RestTemplateSpanDecorator {
-        private static final Logger log = Logger.getLogger(StandardTags.class.getName());
+        private static final Log log = LogFactory.getLog(StandardTags.class);
 
         public static String COMPONENT_NAME = "java-spring-rest-template";
 
@@ -77,7 +79,7 @@ public interface RestTemplateSpanDecorator {
             try {
                 Tags.HTTP_STATUS.set(span, response.getRawStatusCode());
             } catch (IOException e) {
-                log.severe("Could not get HTTP status code");
+                log.error("Could not get HTTP status code");
             }
         }
 

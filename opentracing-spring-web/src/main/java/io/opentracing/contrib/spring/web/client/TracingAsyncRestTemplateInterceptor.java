@@ -1,10 +1,12 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.ActiveSpan;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.Format;
-import io.opentracing.tag.Tags;
-import io.opentracing.util.GlobalTracer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.AsyncClientHttpRequestExecution;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
@@ -12,18 +14,17 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import io.opentracing.ActiveSpan;
+import io.opentracing.Tracer;
+import io.opentracing.propagation.Format;
+import io.opentracing.tag.Tags;
+import io.opentracing.util.GlobalTracer;
 
 /**
  * @author Pavol Loffay
  */
 public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpRequestInterceptor {
-    private static final Logger log = Logger.getLogger(TracingAsyncRestTemplateInterceptor.class.getName());
+    private static final Log log = LogFactory.getLog(TracingAsyncRestTemplateInterceptor.class);
 
     private Tracer tracer;
     private List<RestTemplateSpanDecorator> spanDecorators;
@@ -55,7 +56,7 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
             try {
                 spanDecorator.onRequest(httpRequest, span);
             } catch (RuntimeException exDecorator) {
-                log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                log.error("Exception during decorating span", exDecorator);
             }
         }
 
@@ -71,7 +72,7 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                         try {
                             spanDecorator.onResponse(httpRequest, httpResponse, span);
                         } catch (RuntimeException exDecorator) {
-                            log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                            log.error("Exception during decorating span", exDecorator);
                         }
                     }
                 }
@@ -84,7 +85,7 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                         try {
                             spanDecorator.onError(httpRequest, ex, span);
                         } catch (RuntimeException exDecorator) {
-                            log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                            log.error("Exception during decorating span", exDecorator);
                         }
                     }
                 }
