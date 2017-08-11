@@ -2,8 +2,9 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.logging.Logger;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,7 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 @Configuration
 @ConditionalOnMissingBean(TracingFilter.class)
 public class ServerTracingAutoConfiguration {
-    private static final Logger log = Logger.getLogger(ServerTracingAutoConfiguration.class.getName());
+    private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
     @Bean
     @ConditionalOnMissingBean(WebTracingConfiguration.class)

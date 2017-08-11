@@ -1,21 +1,22 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.ActiveSpan;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.Format;
-import io.opentracing.tag.Tags;
-import io.opentracing.util.GlobalTracer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpResponse;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import io.opentracing.ActiveSpan;
+import io.opentracing.Tracer;
+import io.opentracing.propagation.Format;
+import io.opentracing.tag.Tags;
+import io.opentracing.util.GlobalTracer;
 
 /**
  * OpenTracing Spring RestTemplate integration.
@@ -24,7 +25,7 @@ import java.util.logging.Logger;
  * @author Pavol Loffay
  */
 public class TracingRestTemplateInterceptor implements ClientHttpRequestInterceptor {
-    private static final Logger log = Logger.getLogger(TracingRestTemplateInterceptor.class.getName());
+    private static final Log log = LogFactory.getLog(TracingRestTemplateInterceptor.class);
 
     private Tracer tracer;
     private List<RestTemplateSpanDecorator> spanDecorators;
@@ -67,7 +68,7 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
                 try {
                     spanDecorator.onRequest(httpRequest, span);
                 } catch (RuntimeException exDecorator) {
-                    log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                    log.error("Exception during decorating span", exDecorator);
                 }
             }
 
@@ -78,7 +79,7 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
                     try {
                         spanDecorator.onError(httpRequest, ex, span);
                     } catch (RuntimeException exDecorator) {
-                        log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                        log.error("Exception during decorating span", exDecorator);
                     }
                 }
                 throw ex;
@@ -88,7 +89,7 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
                 try {
                     spanDecorator.onResponse(httpRequest, httpResponse, span);
                 } catch (RuntimeException exDecorator) {
-                    log.log(Level.SEVERE, "Exception during decorating span", exDecorator);
+                    log.error("Exception during decorating span", exDecorator);
                 }
             }
         } finally {
