@@ -1,6 +1,5 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.mvc;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
