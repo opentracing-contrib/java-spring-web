@@ -56,8 +56,8 @@ public class TracerAutoConfiguration {
                 GlobalTracer.register(resolvedTracer);
             }
         } else {
-            log.warning("GlobalTracer is registered! It's recommended to just provide a tracer bean to ensure that "  +
-                    "tracer bean is also registered to GlobalTracer");
+            log.warning("GlobalTracer is already registered. For consistency it is best practice to provide " +
+                    "a Tracer bean instead of manually registering it with the GlobalTracer");
         }
 
         Tracer tracerToReturn = GlobalTracer.get();
