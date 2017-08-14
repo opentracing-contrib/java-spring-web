@@ -25,6 +25,11 @@ public class WebTracingConfiguration {
     public static class Builder {
         private Pattern skipPattern;
 
+        public Builder using(WebTracingConfiguration config) {
+            this.skipPattern = config.skipPattern;
+            return this;
+        }
+
         public Builder withSkipPattern(Pattern pattern) {
             this.skipPattern = pattern;
             return this;
