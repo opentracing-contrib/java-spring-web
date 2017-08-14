@@ -1,5 +1,6 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +32,7 @@ public class TracerAutoConfigurationTest {
     public void testGetAutoWiredTracer() {
         assertNotNull(tracer);
         assertTrue(GlobalTracer.isRegistered());
+        assertEquals(tracer, GlobalTracer.get());
     }
 
 }
