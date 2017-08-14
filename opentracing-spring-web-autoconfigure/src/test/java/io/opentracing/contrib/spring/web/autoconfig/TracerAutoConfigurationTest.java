@@ -1,24 +1,21 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mockito;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.opentracing.Tracer;
+import io.opentracing.util.GlobalTracer;
 
 @SpringBootTest(
-        classes = {TracingAutoConfigurationTest.SpringConfiguration.class})
+        classes = {TracerAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class TracingAutoConfigurationTest {
-
-    @Autowired
-    private Tracer tracer;
+public class TracerAutoConfigurationTest {
 
     @Configuration
     @EnableAutoConfiguration
@@ -26,7 +23,9 @@ public class TracingAutoConfigurationTest {
     }
 
     @Test
-    public void testGetTracer() {
-        assertNotNull(tracer);
+    public void testGlobalTracerRegistered() {
+        assertTrue(GlobalTracer.isRegistered());
+        GlobalTracer.get().buildSpan("TestOp");
+        Mockito.verify(TestTracer.tracer).buildSpan("TestOp");
     }
 }
