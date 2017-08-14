@@ -22,12 +22,18 @@ public class WebTracingConfiguration {
         return new Builder();
     }
 
+    public static Builder builder(WebTracingConfiguration config) {
+        return new Builder(config);
+    }
+
     public static class Builder {
         private Pattern skipPattern;
 
-        public Builder using(WebTracingConfiguration config) {
+        public Builder() {
+        }
+
+        public Builder(WebTracingConfiguration config) {
             this.skipPattern = config.skipPattern;
-            return this;
         }
 
         public Builder withSkipPattern(Pattern pattern) {
