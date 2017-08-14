@@ -12,7 +12,7 @@ public class WebTracingConfigurationTest {
     public void testUsing() {
         Pattern pattern = Pattern.compile("/test");
         WebTracingConfiguration config1 = WebTracingConfiguration.builder().withSkipPattern(pattern).build();
-        WebTracingConfiguration config2 = WebTracingConfiguration.builder(config1).build();
+        WebTracingConfiguration config2 = config1.toBuilder().build();
         assertEquals(pattern.pattern(), config2.getSkipPattern().pattern());
     }
 
@@ -21,7 +21,7 @@ public class WebTracingConfigurationTest {
         Pattern pattern1 = Pattern.compile("/test1");
         Pattern pattern2 = Pattern.compile("/test2");
         WebTracingConfiguration config1 = WebTracingConfiguration.builder().withSkipPattern(pattern1).build();
-        WebTracingConfiguration config2 = WebTracingConfiguration.builder(config1).withSkipPattern(pattern2).build();
+        WebTracingConfiguration config2 = config1.toBuilder().withSkipPattern(pattern2).build();
         assertEquals(pattern2.pattern(), config2.getSkipPattern().pattern());
     }
 

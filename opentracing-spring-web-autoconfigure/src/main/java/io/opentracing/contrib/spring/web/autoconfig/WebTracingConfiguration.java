@@ -22,8 +22,8 @@ public class WebTracingConfiguration {
         return new Builder();
     }
 
-    public static Builder builder(WebTracingConfiguration config) {
-        return new Builder(config);
+    public Builder toBuilder() {
+        return new Builder(this);
     }
 
     public static class Builder {
