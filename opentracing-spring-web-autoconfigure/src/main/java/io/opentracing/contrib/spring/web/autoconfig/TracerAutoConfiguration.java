@@ -1,10 +1,7 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,21 +16,6 @@ import io.opentracing.util.GlobalTracer;
 @Configuration
 public class TracerAutoConfiguration {
     private static final Log log = LogFactory.getLog(TracerAutoConfiguration.class.getName());
-
-    @Autowired
-    private Tracer tracer;
-
-    @PostConstruct
-    public void registerToGlobalTracer() {
-        /**
-         * Tracer registered in GlobalTracer should be the same as the tracer bean.
-         * There can be {@link org.springframework.beans.factory.config.BeanPostProcessor}'s which
-         * alters tracer bean, therefore tracer registered to GlobalTracer should be autowired.
-         */
-        if (!GlobalTracer.isRegistered()) {
-            GlobalTracer.register(tracer);
-        }
-    }
 
     /**
      * This method provides tracer if user did not specify any tracer bean.
