@@ -22,8 +22,26 @@ public class WebTracingConfiguration {
         return new Builder();
     }
 
+    /**
+     * This method is provided to enable the {@link WebTracingConfiguration} to be updated during
+     * bean post processing. Once the configuration has been used by other layers, then any changes
+     * will not take affect.
+     *
+     * @return A new builder based on the configuration information available in this configuration
+     */
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static class Builder {
         private Pattern skipPattern;
+
+        Builder() {
+        }
+
+        Builder(WebTracingConfiguration config) {
+            this.skipPattern = config.skipPattern;
+        }
 
         public Builder withSkipPattern(Pattern pattern) {
             this.skipPattern = pattern;
