@@ -2,7 +2,8 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -18,11 +19,14 @@ import java.util.Set;
 @Configuration
 public class AsyncRestTemplateAutoConfiguration {
 
-    @Autowired(required = false)
-    private Set<AsyncRestTemplate> restTemplates;
+    private final Set<AsyncRestTemplate> restTemplates;
 
-    @Autowired
-    private Tracer tracer;
+    private final Tracer tracer;
+
+    public AsyncRestTemplateAutoConfiguration(ObjectProvider<Set<AsyncRestTemplate>> restTemplates, Tracer tracer) {
+        this.restTemplates = restTemplates.getIfAvailable();
+        this.tracer = tracer;
+    }
 
     @PostConstruct
     public void init() {
