@@ -3,6 +3,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 
 import io.opentracing.Tracer;
@@ -12,6 +13,7 @@ import io.opentracing.util.GlobalTracer;
  * @author Pavol Loffay
  */
 @Configuration
+@ConditionalOnBean(Tracer.class)
 public class TracerRegisterAutoConfiguration {
 
     @Autowired

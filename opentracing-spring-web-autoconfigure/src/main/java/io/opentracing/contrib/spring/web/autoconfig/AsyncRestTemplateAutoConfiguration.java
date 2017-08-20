@@ -3,6 +3,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -16,6 +17,7 @@ import java.util.Set;
  * @author Pavol Loffay
  */
 @Configuration
+@ConditionalOnBean(Tracer.class)
 public class AsyncRestTemplateAutoConfiguration {
 
     @Autowired(required = false)
