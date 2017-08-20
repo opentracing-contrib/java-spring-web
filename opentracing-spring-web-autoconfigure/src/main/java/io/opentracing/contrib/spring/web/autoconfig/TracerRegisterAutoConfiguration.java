@@ -2,7 +2,6 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import javax.annotation.PostConstruct;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 import io.opentracing.Tracer;
@@ -14,8 +13,11 @@ import io.opentracing.util.GlobalTracer;
 @Configuration
 public class TracerRegisterAutoConfiguration {
 
-    @Autowired
-    private Tracer tracer;
+    private final Tracer tracer;
+
+    public TracerRegisterAutoConfiguration(Tracer tracer) {
+        this.tracer = tracer;
+    }
 
     @PostConstruct
     public void registerToGlobalTracer() {
