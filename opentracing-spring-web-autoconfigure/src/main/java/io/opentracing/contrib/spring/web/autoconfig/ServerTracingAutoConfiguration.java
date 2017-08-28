@@ -5,7 +5,10 @@ import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,8 +23,11 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 /**
  * @author Pavol Loffay
+ * @author Eddú Meléndez
  */
 @Configuration
+@ConditionalOnWebApplication
+@ConditionalOnBean(Tracer.class)
 @ConditionalOnMissingBean(TracingFilter.class)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
