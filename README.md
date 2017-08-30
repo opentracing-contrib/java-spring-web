@@ -5,15 +5,11 @@
 This library provides instrumentation for Spring  Web applications (Boot and MVC). It creates tracing data for 
 server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`).
 
-## Comparison to `spring-cloud-sleuth`
-This project provides instrumentation only for `spring-web` package. In other words it traces only
-HTTP requests made to Spring Boot/WEB app and outgoing requests using Spring RestTemplate. However it allows
-you to use OpenTracing API directly in your code and combine different OpenTracing instrumentations together
-easily (e.g. [OpenFeign](https://github.com/OpenFeign/feign-opentracing)).
+## Use [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead
 
-Whereas [spring-cloud-sleuth](https://github.com/spring-cloud/spring-cloud-sleuth) combines
-instrumentations for different frameworks together. It is not currently possible to use the OpenTracing API, or
-wire different instrumentations that are not supported by sleuth (it might be inconvenient).
+As it was mentioned above this library traces only inbound/outbound HTTP requests. If you would like to 
+get automatically traced different set of technologies e.g. `spring-cloud-netflix`, JMS or even more then
+use project [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead.
 
 ## How does the server tracing work?
 
