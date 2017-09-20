@@ -28,7 +28,6 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnBean(Tracer.class)
-@ConditionalOnMissingBean(TracingFilter.class)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
@@ -40,6 +39,7 @@ public class ServerTracingAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(TracingFilter.class)
     public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingConfiguration tracingConfiguration) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
                 TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.getSkipPattern());
@@ -56,6 +56,7 @@ public class ServerTracingAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(TracingFilter.class)
     public WebMvcConfigurerAdapter tracingHandlerInterceptor(final Tracer tracer) {
         log.info("Creating " + WebMvcConfigurerAdapter.class.getSimpleName() + " bean with " +
                 TracingHandlerInterceptor.class);
