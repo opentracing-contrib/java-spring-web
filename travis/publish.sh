@@ -134,4 +134,3 @@ elif build_started_by_tag; then
   ./mvnw --batch-mode -s ./.settings.xml -Prelease -nsu -DreleaseVersion="$(release_version)" -Darguments="-DskipTests" release:prepare
 fi
 
-
