@@ -15,7 +15,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import io.opentracing.Tracer;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.util.GlobalTracer;
-import io.opentracing.util.ThreadLocalActiveSpanSource;
+import io.opentracing.util.ThreadLocalScopeManager;
 
 @SpringBootTest(
         classes = {TracerAutoConfigurationTest.SpringConfiguration.class})
@@ -30,7 +30,7 @@ public class TracerAutoConfigurationTest extends AutoConfigurationBaseTest {
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer(new ThreadLocalActiveSpanSource());
+            return new MockTracer(new ThreadLocalScopeManager());
         }
     }
 
@@ -38,7 +38,7 @@ public class TracerAutoConfigurationTest extends AutoConfigurationBaseTest {
     public void testGetAutoWiredTracer() {
         assertTrue(tracer instanceof MockTracer);
         assertTrue(GlobalTracer.isRegistered());
-        GlobalTracer.get().buildSpan("hello").startManual().finish();
+        GlobalTracer.get().buildSpan("hello").start().finish();
         assertEquals(1, ((MockTracer)tracer).finishedSpans().size());
     }
 

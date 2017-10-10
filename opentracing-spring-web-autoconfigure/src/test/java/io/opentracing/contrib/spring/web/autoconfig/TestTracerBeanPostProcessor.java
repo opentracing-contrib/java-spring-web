@@ -4,7 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
@@ -35,16 +35,6 @@ public class TestTracerBeanPostProcessor implements BeanPostProcessor {
         }
 
         @Override
-        public ActiveSpan activeSpan() {
-            return wrapped.activeSpan();
-        }
-
-        @Override
-        public ActiveSpan makeActive(Span span) {
-            return wrapped.makeActive(span);
-        }
-
-        @Override
         public SpanBuilder buildSpan(String operationName) {
             return wrapped.buildSpan(operationName);
         }
@@ -57,6 +47,16 @@ public class TestTracerBeanPostProcessor implements BeanPostProcessor {
         @Override
         public <C> SpanContext extract(Format<C> format, C carrier) {
             return wrapped.extract(format, carrier);
+        }
+
+        @Override
+        public Span activeSpan() {
+            return wrapped.activeSpan();
+        }
+
+        @Override
+        public ScopeManager scopeManager() {
+             return wrapped.scopeManager();
         }
         
     }

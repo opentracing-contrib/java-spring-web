@@ -23,7 +23,8 @@ import org.springframework.test.web.client.response.MockRestResponseCreators;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.tag.Tags;
 
@@ -72,21 +73,21 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
         for (int i = 0; i < numberOfCalls; i++) {
             final String requestUrl = url + i;
 
-            final ActiveSpan parentSpan = mockTracer.buildSpan("foo").startActive();
-            parentSpan.setTag("request-url", requestUrl);
+            final Scope parentSpan = mockTracer.buildSpan("foo").startActive(false);
+            parentSpan.span().setTag("request-url", requestUrl);
 
-            final ActiveSpan.Continuation cont = parentSpan.capture();
+            final Span cont = parentSpan.span();
 
             futures.add(executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    try (ActiveSpan span = cont.activate()) {
+                    try (Scope span = mockTracer.scopeManager().activate(cont, true)) {
                         client.getForEntity(requestUrl, String.class);
                     }
                 }
             }));
 
-            parentSpan.deactivate();
+            parentSpan.close();
         }
 
         // wait to finish all calls

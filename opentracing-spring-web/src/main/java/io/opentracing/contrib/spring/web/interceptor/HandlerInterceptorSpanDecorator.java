@@ -1,6 +1,6 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
-import io.opentracing.BaseSpan;
+import io.opentracing.Span;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 
@@ -25,7 +25,7 @@ public interface HandlerInterceptorSpanDecorator {
      * @param handler handler
      * @param span current span
      */
-    void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span);
+    void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span);
 
     /**
      * This is called in
@@ -38,7 +38,7 @@ public interface HandlerInterceptorSpanDecorator {
      * @param span current span
      */
     void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
-                           Exception ex, BaseSpan<?> span);
+                           Exception ex, Span span);
 
     /**
      * This is called in
@@ -50,7 +50,7 @@ public interface HandlerInterceptorSpanDecorator {
      * @param span current span
      */
     void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler,
-                           BaseSpan<?> span);
+                           Span span);
 
     /**
      * Decorator to record details about the handler as log events recorded on the span.
@@ -58,7 +58,7 @@ public interface HandlerInterceptorSpanDecorator {
     HandlerInterceptorSpanDecorator STANDARD_LOGS = new HandlerInterceptorSpanDecorator() {
 
         @Override
-        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span) {
             Map<String, Object> logs = new HashMap<>(3);
             logs.put("event", "preHandle");
             logs.put(HandlerUtils.HANDLER, handler);
@@ -78,7 +78,7 @@ public interface HandlerInterceptorSpanDecorator {
 
         @Override
         public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                      Object handler, Exception ex, BaseSpan<?> span) {
+                                      Object handler, Exception ex, Span span) {
             Map<String, Object> logs = new HashMap<>(2);
             logs.put("event", "afterCompletion");
             logs.put(HandlerUtils.HANDLER, handler);
@@ -87,7 +87,7 @@ public interface HandlerInterceptorSpanDecorator {
 
         @Override
         public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
-                HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
+                HttpServletResponse httpServletResponse, Object handler, Span span) {
             Map<String, Object> logs = new HashMap<>(2);
             logs.put("event", "afterConcurrentHandlingStarted");
             logs.put(HandlerUtils.HANDLER, handler);
@@ -101,7 +101,7 @@ public interface HandlerInterceptorSpanDecorator {
     HandlerInterceptorSpanDecorator HANDLER_METHOD_OPERATION_NAME = new HandlerInterceptorSpanDecorator() {
 
         @Override
-        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span) {
             String metaData = HandlerUtils.methodName(handler);
             if (metaData != null) {
                 span.setOperationName(metaData);
@@ -110,12 +110,12 @@ public interface HandlerInterceptorSpanDecorator {
 
         @Override
         public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                      Object handler, Exception ex, BaseSpan<?> span) {
+                                      Object handler, Exception ex, Span span) {
         }
 
         @Override
         public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
-                HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
+                HttpServletResponse httpServletResponse, Object handler, Span span) {
         }
     };
 
