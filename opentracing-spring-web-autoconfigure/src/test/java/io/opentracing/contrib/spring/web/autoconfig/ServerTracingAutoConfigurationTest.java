@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.opentracing.mock.MockTracer;
-import io.opentracing.util.ThreadLocalActiveSpanSource;
+import io.opentracing.util.ThreadLocalScopeManager;
 
 /**
  * @author Pavol Loffay
@@ -32,7 +32,7 @@ public class ServerTracingAutoConfigurationTest {
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer(new ThreadLocalActiveSpanSource());
+            return new MockTracer(new ThreadLocalScopeManager());
         }
     }
 

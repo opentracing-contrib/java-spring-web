@@ -14,7 +14,8 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
@@ -48,13 +49,13 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                                                           byte[] body,
                                                           AsyncClientHttpRequestExecution execution) throws IOException {
 
-        final ActiveSpan span = tracer.buildSpan(httpRequest.getMethod().toString())
-                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive();
-        tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpRequest.getHeaders()));
+        final Scope scope = tracer.buildSpan(httpRequest.getMethod().toString())
+                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive(false);
+        tracer.inject(scope.span().context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpRequest.getHeaders()));
 
         for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
             try {
-                spanDecorator.onRequest(httpRequest, span);
+                spanDecorator.onRequest(httpRequest, scope.span());
             } catch (RuntimeException exDecorator) {
                 log.error("Exception during decorating span", exDecorator);
             }
@@ -62,15 +63,15 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
 
         ListenableFuture<ClientHttpResponse> future = execution.executeAsync(httpRequest, body);
 
-        final ActiveSpan.Continuation cont = span.capture();
+        final Span span = scope.span();
 
         future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
             @Override
             public void onSuccess(ClientHttpResponse httpResponse) {
-                try (ActiveSpan activeSpan = cont.activate()) {
+                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
-                            spanDecorator.onResponse(httpRequest, httpResponse, span);
+                            spanDecorator.onResponse(httpRequest, httpResponse, scope.span());
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
@@ -80,10 +81,10 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
 
             @Override
             public void onFailure(Throwable ex) {
-                try (ActiveSpan activeSpan = cont.activate()) {
+                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
-                            spanDecorator.onError(httpRequest, ex, span);
+                            spanDecorator.onError(httpRequest, ex, scope.span());
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
@@ -92,7 +93,7 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
             }
         });
 
-        span.deactivate();
+        scope.close();
 
         return future;
     }
