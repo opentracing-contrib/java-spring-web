@@ -49,6 +49,7 @@ public class TracerAutoConfiguration {
                 tracer = NoopTracerFactory.create();
             }
         }
+        log.warn("Tracer bean is not configured! Switching to " + tracer);
         return tracer;
     }
 }

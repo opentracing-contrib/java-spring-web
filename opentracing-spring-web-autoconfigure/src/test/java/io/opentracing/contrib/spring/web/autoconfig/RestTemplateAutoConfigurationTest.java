@@ -24,7 +24,7 @@ import io.opentracing.util.ThreadLocalActiveSpanSource;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {RestTemplateAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RestTemplateAutoConfigurationTest {
+public class RestTemplateAutoConfigurationTest extends AutoConfigurationBaseTest  {
 
     @Configuration
     @EnableAutoConfiguration

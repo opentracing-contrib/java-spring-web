@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {AsyncRestTemplateAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class AsyncRestTemplateAutoConfigurationTest {
+public class AsyncRestTemplateAutoConfigurationTest extends AutoConfigurationBaseTest  {
 
     @Configuration
     @EnableAutoConfiguration
