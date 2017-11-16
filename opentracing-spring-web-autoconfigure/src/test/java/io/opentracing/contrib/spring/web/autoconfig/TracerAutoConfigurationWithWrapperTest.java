@@ -1,6 +1,5 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -31,7 +30,7 @@ public class TracerAutoConfigurationWithWrapperTest extends AutoConfigurationBas
 
     @Test
     public void testGetAutoWiredTracer() {
-        assertNotNull(tracer);
+        assertTrue(tracer instanceof TestTracerBeanPostProcessor.TracerWrapper);
         // No tracer has actually been provided, but there is a wrapper created
         // in a BeanPostProcessor, so this wrapper around the NoopTracer gets
         // registered with the GlobalTracer.

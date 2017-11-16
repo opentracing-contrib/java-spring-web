@@ -1,6 +1,5 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
@@ -39,7 +38,7 @@ public class TracerAutoConfigurationWithWrapperAndRegisteredTracerTest extends A
 
     @Test
     public void testGetAutoWiredTracer() {
-        assertNotNull(tracer);
+        assertTrue(tracer instanceof TestTracerBeanPostProcessor.TracerWrapper);
         assertTrue(GlobalTracer.isRegistered());
         assertTrue(tracer.buildSpan("hello").startManual() instanceof MockSpan);
     }
