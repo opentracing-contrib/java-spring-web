@@ -6,7 +6,10 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -20,7 +23,9 @@ import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
+@AutoConfigureAfter(TracerAutoConfiguration.class)
 public class RestTemplateAutoConfiguration {
+    private static final Log log = LogFactory.getLog(RestTemplateAutoConfiguration.class);
 
     @Autowired(required = false)
     private Set<RestTemplate> restTemplates;
@@ -46,6 +51,7 @@ public class RestTemplateAutoConfiguration {
             }
         }
 
+        log.info("Adding " + TracingRestTemplateInterceptor.class.getSimpleName() + " to rest template");
         interceptors = new ArrayList<>(interceptors);
         interceptors.add(new TracingRestTemplateInterceptor(tracer));
         restTemplate.setInterceptors(interceptors);
