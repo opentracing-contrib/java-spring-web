@@ -1,15 +1,20 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.opentracing.mock.MockSpan;
+import io.opentracing.mock.MockTracer;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import io.opentracing.SpanContext;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
+import org.springframework.mock.web.MockHttpServletRequest;
 
 public class TracingHandlerInterceptorTest {
 
@@ -38,4 +43,17 @@ public class TracingHandlerInterceptorTest {
         interceptor.afterCompletion(request, null, null, null);
     }
 
+    @Test
+    public void testErrorTagSet() throws Exception {
+        MockTracer tracer = new MockTracer(new ThreadLocalActiveSpanSource());
+        HttpServletRequest request = new MockHttpServletRequest();
+        request.setAttribute(TracingFilter.SERVER_SPAN_CONTEXT, new MockSpan.MockContext(1, 2, null));
+
+        TracingHandlerInterceptor interceptor = new TracingHandlerInterceptor(tracer);
+        interceptor.preHandle(request, null, Mockito.mock(Object.class));
+        interceptor.afterCompletion(request, null, null, new Exception("foo"));
+
+        assertEquals(1, tracer.finishedSpans().size());
+        assertEquals(true, tracer.finishedSpans().get(0).tags().get("error"));
+    }
 }

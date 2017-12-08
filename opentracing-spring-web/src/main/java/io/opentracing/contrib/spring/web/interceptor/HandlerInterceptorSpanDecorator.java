@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.interceptor;
 
 import io.opentracing.BaseSpan;
+import io.opentracing.tag.Tags;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.method.HandlerMethod;
 
@@ -119,6 +120,28 @@ public interface HandlerInterceptorSpanDecorator {
         }
     };
 
+    /**
+     * Sets a standard "error" tag in case of exception thrown during request processing
+     */
+    HandlerInterceptorSpanDecorator ERROR_TAG = new HandlerInterceptorSpanDecorator() {
+
+        @Override
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, BaseSpan<?> span) {
+        }
+
+        @Override
+        public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                      Object handler, Exception ex, BaseSpan<?> span) {
+            if (ex != null) {
+                Tags.ERROR.set(span, Boolean.TRUE);
+            }
+        }
+
+        @Override
+        public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest,
+                                                     HttpServletResponse httpServletResponse, Object handler, BaseSpan<?> span) {
+        }
+    };
     /**
      * Helper class for deriving tags/logs from handler object.
      */
