@@ -48,7 +48,6 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
      * @param tracer tracer
      * @param decorators span decorators
      */
-    @Autowired
     public TracingHandlerInterceptor(Tracer tracer, List<HandlerInterceptorSpanDecorator> decorators) {
         this.tracer = tracer;
         this.decorators = new ArrayList<>(decorators);
