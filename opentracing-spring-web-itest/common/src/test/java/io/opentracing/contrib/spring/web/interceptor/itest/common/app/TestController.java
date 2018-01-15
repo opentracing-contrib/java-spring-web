@@ -75,7 +75,7 @@ public class TestController {
     @RequestMapping("/async")
     public Callable<String> async() {
         verifyActiveSpan();
-        final Span cont = tracer.scopeManager().active().span();
+        final Span cont = tracer.activeSpan();
         return new Callable<String>() {
             public String call() throws Exception {
                 try (Scope scope = tracer.scopeManager().activate(cont, false)) {
