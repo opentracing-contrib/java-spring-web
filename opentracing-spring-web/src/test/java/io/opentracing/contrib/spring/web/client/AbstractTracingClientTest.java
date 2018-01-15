@@ -1,10 +1,10 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.Scope;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-import io.opentracing.util.ThreadLocalActiveSpanSource;
+import io.opentracing.util.ThreadLocalScopeManager;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -27,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+
 /**
  * @author Pavol Loffay
  */
@@ -37,7 +38,7 @@ public abstract class AbstractTracingClientTest<Template> {
         Template template();
     }
 
-    protected final MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(),
+    protected final MockTracer mockTracer = new MockTracer(new ThreadLocalScopeManager(),
             MockTracer.Propagator.TEXT_MAP);
     protected MockRestServiceServer mockServer;
     protected Client<Template> client;
@@ -135,7 +136,7 @@ public abstract class AbstractTracingClientTest<Template> {
     @Test
     public void testParentSpan() {
         {
-            ActiveSpan parent = mockTracer.buildSpan("parent").startActive();
+            Scope parent = mockTracer.buildSpan("parent").startActive(true);
 
             String url = "http://localhost/foo";
             mockServer.expect(MockRestRequestMatchers.requestTo(url))
@@ -143,7 +144,7 @@ public abstract class AbstractTracingClientTest<Template> {
                     .andRespond(MockRestResponseCreators.withSuccess());
             client.getForEntity(url, String.class);
 
-            parent.deactivate();
+            parent.close();
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();

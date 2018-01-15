@@ -19,7 +19,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 
@@ -75,11 +75,11 @@ public class TestController {
     @RequestMapping("/async")
     public Callable<String> async() {
         verifyActiveSpan();
-        final ActiveSpan.Continuation cont = tracer.activeSpan().capture();
+        final Span cont = tracer.activeSpan();
         return new Callable<String>() {
             public String call() throws Exception {
-                try (ActiveSpan span = cont.activate()) {
-                    if (tracer.activeSpan() == null) {
+                try (Scope scope = tracer.scopeManager().activate(cont, false)) {
+                    if (tracer.scopeManager().active() == null) {
                         throw new RuntimeException("No active span");
                     }
                     Thread.sleep(1000);
@@ -142,7 +142,7 @@ public class TestController {
     }
 
     private void verifyActiveSpan() {
-        if (tracer.activeSpan() == null) {
+        if (tracer.scopeManager().active() == null) {
             throw new RuntimeException("No active span");
         }
     }

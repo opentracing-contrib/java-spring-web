@@ -2,7 +2,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.lang.reflect.Field;
 import org.junit.BeforeClass;
-import io.opentracing.NoopTracerFactory;
+import io.opentracing.noop.NoopTracerFactory;
 import io.opentracing.Tracer;
 import io.opentracing.util.GlobalTracer;
 

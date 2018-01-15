@@ -10,7 +10,7 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
-import io.opentracing.BaseSpan;
+import io.opentracing.Span;
 import io.opentracing.tag.Tags;
 
 /**
@@ -30,7 +30,7 @@ public interface RestTemplateSpanDecorator {
      * @param request request
      * @param span client span
      */
-    void onRequest(HttpRequest request, BaseSpan<?> span);
+    void onRequest(HttpRequest request, Span span);
 
     /**
      * Decorate span after request is done, e.g. after
@@ -41,7 +41,7 @@ public interface RestTemplateSpanDecorator {
      * @param response response
      * @param span span
      */
-    void onResponse(HttpRequest request, ClientHttpResponse response, BaseSpan<?> span);
+    void onResponse(HttpRequest request, ClientHttpResponse response, Span span);
 
     /**
      * Decorate span when exception is thrown during request processing, e.g. during
@@ -52,7 +52,7 @@ public interface RestTemplateSpanDecorator {
      * @param ex exception
      * @param span span
      */
-    void onError(HttpRequest request,  Throwable ex, BaseSpan<?> span);
+    void onError(HttpRequest request,  Throwable ex, Span span);
 
     /**
      * This decorator adds set of standard tags to the span.
@@ -63,7 +63,7 @@ public interface RestTemplateSpanDecorator {
         public static String COMPONENT_NAME = "java-spring-rest-template";
 
         @Override
-        public void onRequest(HttpRequest request, BaseSpan<?> span) {
+        public void onRequest(HttpRequest request, Span span) {
             Tags.COMPONENT.set(span, COMPONENT_NAME);
             // this can be sometimes only path e.g. "/foo"
             Tags.HTTP_URL.set(span, request.getURI().toString());
@@ -75,7 +75,7 @@ public interface RestTemplateSpanDecorator {
         }
 
         @Override
-        public void onResponse(HttpRequest httpRequest, ClientHttpResponse response, BaseSpan<?> span) {
+        public void onResponse(HttpRequest httpRequest, ClientHttpResponse response, Span span) {
             try {
                 Tags.HTTP_STATUS.set(span, response.getRawStatusCode());
             } catch (IOException e) {
@@ -84,7 +84,7 @@ public interface RestTemplateSpanDecorator {
         }
 
         @Override
-        public void onError(HttpRequest httpRequest, Throwable ex, BaseSpan<?> span) {
+        public void onError(HttpRequest httpRequest, Throwable ex, Span span) {
             Tags.ERROR.set(span, Boolean.TRUE);
             span.log(errorLogs(ex));
         }
