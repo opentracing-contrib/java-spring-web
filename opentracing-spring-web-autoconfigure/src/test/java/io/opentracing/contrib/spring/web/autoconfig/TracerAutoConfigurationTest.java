@@ -37,7 +37,7 @@ public class TracerAutoConfigurationTest extends AutoConfigurationBaseTest {
     public void testGetAutoWiredTracer() {
         assertTrue(tracer instanceof MockTracer);
         assertTrue(GlobalTracer.isRegistered());
-        GlobalTracer.get().buildSpan("hello").startManual().finish();
+        GlobalTracer.get().buildSpan("hello").start().finish();
         assertEquals(1, ((MockTracer)tracer).finishedSpans().size());
     }
 
