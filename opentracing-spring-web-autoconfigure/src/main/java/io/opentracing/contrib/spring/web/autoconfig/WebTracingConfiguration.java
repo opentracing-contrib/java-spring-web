@@ -6,7 +6,9 @@ import java.util.regex.Pattern;
  * @author Pavol Loffay
  */
 public class WebTracingConfiguration {
-    public static final Pattern DEFAULT_SKIP_PATTERN = Pattern.compile("/health|/favicon\\.ico");
+    public static final Pattern DEFAULT_SKIP_PATTERN = Pattern.compile(
+            "/api-docs.*|/autoconfig|/configprops|/dump|/health|/info|/metrics.*|" +
+            "/mappings|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream");
 
     private Pattern skipPattern;
 

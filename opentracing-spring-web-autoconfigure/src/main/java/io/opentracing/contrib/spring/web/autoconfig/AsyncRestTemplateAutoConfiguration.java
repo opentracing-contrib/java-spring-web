@@ -2,7 +2,11 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
@@ -18,7 +22,9 @@ import java.util.Set;
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
+@AutoConfigureAfter(TracerAutoConfiguration.class)
 public class AsyncRestTemplateAutoConfiguration {
+    private static final Log log = LogFactory.getLog(AsyncRestTemplateAutoConfiguration.class);
 
     @Autowired(required = false)
     private Set<AsyncRestTemplate> restTemplates;
@@ -44,6 +50,7 @@ public class AsyncRestTemplateAutoConfiguration {
             }
         }
 
+        log.info("Adding " + TracingAsyncRestTemplateInterceptor.class.getSimpleName() + " to async rest template");
         interceptors = new ArrayList<>(interceptors);
         interceptors.add(new TracingAsyncRestTemplateInterceptor(tracer));
         restTemplate.setInterceptors(interceptors);

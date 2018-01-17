@@ -25,7 +25,7 @@ import io.opentracing.util.ThreadLocalScopeManager;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {ServerTracingAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
-public class ServerTracingAutoConfigurationTest {
+public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTest  {
 
     @Configuration
     @EnableAutoConfiguration

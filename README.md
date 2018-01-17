@@ -89,9 +89,12 @@ public String hello(HttpServletRequest request) {
     ActiveSpan span = tracer.buildSpan("localSpan");
             .asChildOf(serverSpan.context())
             .start();
-    span.deactivate();
-    
-    return "Hello world!";
+    try {
+        // Traced work happens between start() and deactivate();
+        return "Hello world!";
+    } finally {
+        span.deactivate();
+    }
 }
 ```
 
