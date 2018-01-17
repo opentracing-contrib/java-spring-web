@@ -87,7 +87,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
                 // spring boot default error handling, executes interceptor after processing in the filter (ugly huh?)
                 serverSpan = tracer.buildSpan(httpServletRequest.getMethod())
                         .addReference(References.FOLLOWS_FROM, TracingFilter.serverSpanContext(httpServletRequest))
-                        .startActive();
+                        .startActive(true);
             }
         }
 
