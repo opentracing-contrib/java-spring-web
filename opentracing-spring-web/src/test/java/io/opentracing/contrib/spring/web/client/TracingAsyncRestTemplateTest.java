@@ -81,7 +81,7 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
             futures.add(executorService.submit(new Runnable() {
                 @Override
                 public void run() {
-                    try (Scope span = mockTracer.scopeManager().activate(cont)) {
+                    try (Scope span = mockTracer.scopeManager().activate(cont, true)) {
                         client.getForEntity(requestUrl, String.class);
                     }
                 }
