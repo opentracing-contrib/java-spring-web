@@ -31,6 +31,7 @@ public class TracerAutoConfigurationTest {
     @Test
     public void testGetAutoWiredTracer() {
         assertNotNull(tracer);
+        System.out.println(">>>> TRACER = "+ tracer + " IS REGISTERED? " + GlobalTracer.isRegistered());
         assertTrue(GlobalTracer.isRegistered());
         assertEquals(tracer, GlobalTracer.get());
     }
