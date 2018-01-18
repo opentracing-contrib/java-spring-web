@@ -40,7 +40,7 @@ public class TracerAutoConfigurationWithWrapperAndRegisteredTracerTest extends A
     public void testGetAutoWiredTracer() {
         assertTrue(tracer instanceof TestTracerBeanPostProcessor.TracerWrapper);
         assertTrue(GlobalTracer.isRegistered());
-        assertTrue(tracer.buildSpan("hello").startManual() instanceof MockSpan);
+        assertTrue(tracer.buildSpan("hello").start() instanceof MockSpan);
     }
 
 }

@@ -10,8 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import io.opentracing.NoopSpan;
 import io.opentracing.Tracer;
+import io.opentracing.noop.NoopSpan;
 import io.opentracing.util.GlobalTracer;
 
 @SpringBootTest(
@@ -35,7 +35,7 @@ public class TracerAutoConfigurationWithWrapperTest extends AutoConfigurationBas
         // in a BeanPostProcessor, so this wrapper around the NoopTracer gets
         // registered with the GlobalTracer.
         assertTrue(GlobalTracer.isRegistered());
-        assertTrue(tracer.buildSpan("hello").startManual() instanceof NoopSpan);
+        assertTrue(tracer.buildSpan("hello").start() instanceof NoopSpan);
     }
 
 }
