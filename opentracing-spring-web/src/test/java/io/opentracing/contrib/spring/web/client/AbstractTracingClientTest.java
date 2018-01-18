@@ -136,7 +136,7 @@ public abstract class AbstractTracingClientTest<Template> {
     @Test
     public void testParentSpan() {
         {
-            Scope parent = mockTracer.buildSpan("parent").startActive();
+            Scope parent = mockTracer.buildSpan("parent").startActive(true);
 
             String url = "http://localhost/foo";
             mockServer.expect(MockRestRequestMatchers.requestTo(url))

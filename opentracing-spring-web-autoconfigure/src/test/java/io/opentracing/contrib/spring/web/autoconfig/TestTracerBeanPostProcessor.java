@@ -5,6 +5,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Configuration;
 
 import io.opentracing.ScopeManager;
+import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
@@ -51,6 +52,11 @@ public class TestTracerBeanPostProcessor implements BeanPostProcessor {
         @Override
         public ScopeManager scopeManager() {
             return wrapped.scopeManager();
+        }
+
+        @Override
+        public Span activeSpan() {
+            return wrapped.activeSpan();
         }
         
     }
