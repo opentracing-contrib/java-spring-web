@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,19 +30,13 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 @ConditionalOnWebApplication
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
+@EnableConfigurationProperties(WebTracingProperties.class)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
     @Bean
-    @ConditionalOnMissingBean(WebTracingConfiguration.class)
-    public WebTracingConfiguration tracerAutoConfiguration() {
-        return WebTracingConfiguration.builder()
-                .withSkipPattern(WebTracingConfiguration.DEFAULT_SKIP_PATTERN).build();
-    }
-
-    @Bean
     @ConditionalOnMissingBean(TracingFilter.class)
-    public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingConfiguration tracingConfiguration) {
+    public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingProperties tracingConfiguration) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
                 TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.getSkipPattern());
 
