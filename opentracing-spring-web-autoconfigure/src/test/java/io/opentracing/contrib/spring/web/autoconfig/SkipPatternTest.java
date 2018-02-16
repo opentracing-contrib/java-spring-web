@@ -45,6 +45,10 @@ public class SkipPatternTest {
         public String skip() {
             return "skip";
         }
+        @RequestMapping("/hello")
+        public String hello() {
+            return "hello";
+        }
     }
 
     @Autowired
@@ -54,8 +58,11 @@ public class SkipPatternTest {
 
     @Test
     public void testSkipPattern() {
-        ResponseEntity<String> response = testRestTemplate.getForEntity("/skip", String.class);
+        testRestTemplate.getForEntity("/skip", String.class);
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         assertEquals(0, mockSpans.size());
+        testRestTemplate.getForEntity("/hello", String.class);
+        mockSpans = mockTracer.finishedSpans();
+        assertEquals(1, mockSpans.size());
     }
 }
