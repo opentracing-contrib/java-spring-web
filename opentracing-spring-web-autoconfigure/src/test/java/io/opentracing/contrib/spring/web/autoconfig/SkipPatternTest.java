@@ -1,8 +1,10 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,6 +64,12 @@ public class SkipPatternTest {
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         assertEquals(0, mockSpans.size());
         testRestTemplate.getForEntity("/hello", String.class);
+        await().until(new Callable<Boolean>() {
+            @Override
+            public Boolean call() {
+                return mockTracer.finishedSpans().size() == 1;
+            }
+        });
         mockSpans = mockTracer.finishedSpans();
         assertEquals(1, mockSpans.size());
     }
