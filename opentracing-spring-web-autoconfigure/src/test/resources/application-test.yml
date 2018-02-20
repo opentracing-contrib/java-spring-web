@@ -1,0 +1,6 @@
+opentracing:
+  spring:
+    web:
+      urlPatterns:
+        - /hello
+      order: 99

@@ -1,5 +1,9 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,6 +18,8 @@ public class WebTracingProperties {
             "/mappings|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream");
 
     private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
+    private int order = Integer.MIN_VALUE;
+    private List<String> urlPatterns = Arrays.asList("/*");
 
     public Pattern getSkipPattern() {
         return skipPattern;
@@ -22,4 +28,21 @@ public class WebTracingProperties {
     public void setSkipPattern(Pattern skipPattern) {
         this.skipPattern = skipPattern;
     }
+
+    public List<String> getUrlPatterns() {
+        return urlPatterns;
+    }
+
+    public void setUrlPatterns(List<String> urlPatterns) {
+        this.urlPatterns = urlPatterns;
+    }
+
+    public int getOrder() {
+        return order;
+    }
+
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
 }

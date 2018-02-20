@@ -2,9 +2,11 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -13,6 +15,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -34,18 +37,32 @@ import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
+    private final ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator;
+    private final ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator;
+
+    public ServerTracingAutoConfiguration(ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator,
+                                          ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator) {
+        this.servletFilterSpanDecorator = servletFilterSpanDecorator;
+        this.interceptorSpanDecorator = interceptorSpanDecorator;
+    }
+
     @Bean
     @ConditionalOnMissingBean(TracingFilter.class)
     public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingProperties tracingConfiguration) {
         log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
-                TracingFilter.class + " mapped to " + "/*, skip pattern is " + tracingConfiguration.getSkipPattern());
+                TracingFilter.class + " mapped to " + tracingConfiguration.getUrlPatterns().toString() +
+                ", skip pattern is " + tracingConfiguration.getSkipPattern());
 
-        TracingFilter tracingFilter = new TracingFilter(tracer,
-                Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS), tracingConfiguration.getSkipPattern());
+        List<ServletFilterSpanDecorator> decorators = servletFilterSpanDecorator.getIfAvailable();
+        if (CollectionUtils.isEmpty(decorators)) {
+            decorators = Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS);
+        }
+
+        TracingFilter tracingFilter = new TracingFilter(tracer, decorators, tracingConfiguration.getSkipPattern());
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
-        filterRegistrationBean.addUrlPatterns("/*");
-        filterRegistrationBean.setOrder(Integer.MIN_VALUE);
+        filterRegistrationBean.setUrlPatterns(tracingConfiguration.getUrlPatterns());
+        filterRegistrationBean.setOrder(tracingConfiguration.getOrder());
         filterRegistrationBean.setAsyncSupported(true);
 
         return filterRegistrationBean;
@@ -60,11 +77,17 @@ public class ServerTracingAutoConfiguration {
         return new WebMvcConfigurerAdapter() {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
-                registry.addInterceptor(new TracingHandlerInterceptor(tracer,
-                        Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
-                                HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME)));
+                List<HandlerInterceptorSpanDecorator> decorators = interceptorSpanDecorator.getIfAvailable();
+                if (CollectionUtils.isEmpty(decorators)) {
+                    decorators = Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
+                            HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME);
+                }
+
+                registry.addInterceptor(new TracingHandlerInterceptor(tracer, decorators));
+
                 super.addInterceptors(registry);
             }
         };
     }
+
 }
