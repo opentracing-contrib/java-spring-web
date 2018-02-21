@@ -9,7 +9,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import io.opentracing.References;
@@ -39,7 +38,6 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     /**
      * @param tracer
      */
-    @Autowired
     public TracingHandlerInterceptor(Tracer tracer) {
         this(tracer, Arrays.asList(HandlerInterceptorSpanDecorator.STANDARD_LOGS,
                 HandlerInterceptorSpanDecorator.HANDLER_METHOD_OPERATION_NAME));
