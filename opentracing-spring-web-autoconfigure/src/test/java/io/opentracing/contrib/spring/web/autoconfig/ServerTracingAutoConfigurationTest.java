@@ -1,23 +1,30 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
+import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
 import org.awaitility.Awaitility;
 import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import io.opentracing.mock.MockTracer;
 import io.opentracing.util.ThreadLocalScopeManager;
-
+import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Pavol Loffay
  */
@@ -25,6 +32,7 @@ import io.opentracing.util.ThreadLocalScopeManager;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {ServerTracingAutoConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
+@ActiveProfiles("test")
 public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTest  {
 
     @Configuration
@@ -42,14 +50,48 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
     @Autowired
     private MockTracer mockTracer;
 
+    @Autowired
+    @Qualifier("tracingFilter")
+    private FilterRegistrationBean tracingFilter;
+
+    @MockBean
+    private ServletFilterSpanDecorator mockDecorator1;
+    @MockBean
+    private ServletFilterSpanDecorator mockDecorator2;
+
     @Test
     public void testRequestIsTraced() {
         testRestTemplate.getForEntity("/hello", String.class);
         Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
 
-        Assert.assertEquals(2, mockTracer.finishedSpans().size());
+        assertThat(mockTracer.finishedSpans()).hasSize(2);
     }
 
+    @Test
+    public void testOnlyUrlPatternsIsTraced() {
+        testRestTemplate.getForEntity("/skip", String.class);
+        Awaitility.await().pollDelay(500, TimeUnit.MILLISECONDS).until(reportedSpansSize(), IsEqual.equalTo(0));
+
+        assertThat(mockTracer.finishedSpans()).hasSize(0);
+        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
+    }
+
+    @Test
+    public void testDecoratedProviderIsUsed() {
+        testRestTemplate.getForEntity("/hello", String.class);
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+
+        assertThat(mockTracer.finishedSpans()).hasSize(2);
+        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(2);
+        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(2);
+    }
+
+    @Test
+    public void testOrderIsUsed() {
+        // Ensure the loaded properties (application-test.yml) are used
+        assertThat(tracingFilter.getOrder()).isEqualTo(99);
+    }
+    
     public Callable<Integer> reportedSpansSize() {
         return new Callable<Integer>() {
             @Override
@@ -57,5 +99,10 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
                 return mockTracer.finishedSpans().size();
             }
         };
+    }
+
+    @After()
+    public void reset() {
+        mockTracer.reset();
     }
 }
