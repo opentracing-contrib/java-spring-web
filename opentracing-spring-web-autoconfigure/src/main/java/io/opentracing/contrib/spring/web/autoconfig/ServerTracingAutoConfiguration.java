@@ -25,6 +25,8 @@ import io.opentracing.contrib.spring.web.interceptor.TracingHandlerInterceptor;
 import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
+import static java.lang.String.format;
+
 /**
  * @author Pavol Loffay
  * @author Eddú Meléndez
@@ -49,9 +51,10 @@ public class ServerTracingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TracingFilter.class)
     public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingProperties tracingConfiguration) {
-        log.info("Creating " + FilterRegistrationBean.class.getSimpleName() + " bean with " +
-                TracingFilter.class + " mapped to " + tracingConfiguration.getUrlPatterns().toString() +
-                ", skip pattern is " + tracingConfiguration.getSkipPattern());
+        log.info(format("Creating %s bean with %s mapped to %s, skip pattern is \"%s\"",
+                FilterRegistrationBean.class.getSimpleName(), TracingFilter.class.getSimpleName(),
+                tracingConfiguration.getUrlPatterns().toString(),
+                tracingConfiguration.getSkipPattern()));
 
         List<ServletFilterSpanDecorator> decorators = servletFilterSpanDecorator.getIfAvailable();
         if (CollectionUtils.isEmpty(decorators)) {
