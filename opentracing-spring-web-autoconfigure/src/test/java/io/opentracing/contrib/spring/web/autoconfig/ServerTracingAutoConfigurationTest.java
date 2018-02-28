@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
@@ -21,9 +22,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import io.opentracing.mock.MockTracer;
-import io.opentracing.util.ThreadLocalScopeManager;
 import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author Pavol Loffay
@@ -35,12 +37,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTest  {
 
+    private static CountDownLatch skipCountDownLatch = new CountDownLatch(1);
+    private static CountDownLatch excludeCountDownLatch = new CountDownLatch(1);
+
+    @RestController
     @Configuration
     @EnableAutoConfiguration
     public static class SpringConfiguration {
         @Bean
         public MockTracer tracer() {
-            return new MockTracer(new ThreadLocalScopeManager());
+            return new MockTracer();
+        }
+
+        @RequestMapping("/hello")
+        public void hello() {
+        }
+
+        @RequestMapping("/skip")
+        public void skip() {
+            skipCountDownLatch.countDown();
+        }
+
+        @RequestMapping("/excluded")
+        public void excluded() {
+            excludeCountDownLatch.countDown();
         }
     }
 
@@ -62,26 +82,35 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
     @Test
     public void testRequestIsTraced() {
         testRestTemplate.getForEntity("/hello", String.class);
-        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
-
-        assertThat(mockTracer.finishedSpans()).hasSize(2);
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
+        assertThat(mockTracer.finishedSpans()).hasSize(1);
     }
 
     @Test
-    public void testOnlyUrlPatternsIsTraced() {
+    public void testOnlyUrlPatternsIsTraced() throws InterruptedException {
         testRestTemplate.getForEntity("/skip", String.class);
-        Awaitility.await().pollDelay(500, TimeUnit.MILLISECONDS).until(reportedSpansSize(), IsEqual.equalTo(0));
+        skipCountDownLatch.await();
 
         assertThat(mockTracer.finishedSpans()).hasSize(0);
         assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
     }
 
     @Test
+    public void testExcluded() throws InterruptedException {
+        testRestTemplate.getForEntity("/excluded", String.class);
+        excludeCountDownLatch.await();
+
+        assertThat(mockTracer.finishedSpans()).hasSize(0);
+        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
+        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(0);
+    }
+
+    @Test
     public void testDecoratedProviderIsUsed() {
         testRestTemplate.getForEntity("/hello", String.class);
-        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+        Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
 
-        assertThat(mockTracer.finishedSpans()).hasSize(2);
+        assertThat(mockTracer.finishedSpans()).hasSize(1);
         assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(2);
         assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(2);
     }
@@ -104,5 +133,7 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
     @After()
     public void reset() {
         mockTracer.reset();
+        skipCountDownLatch = new CountDownLatch(1);
+        excludeCountDownLatch = new CountDownLatch(1);
     }
 }
