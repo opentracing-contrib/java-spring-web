@@ -1,9 +1,6 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -19,7 +16,7 @@ public class WebTracingProperties {
 
     private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
     private int order = Integer.MIN_VALUE;
-    private List<String> urlPatterns = Arrays.asList("/*");
+    private List<String> urlPatterns = new ArrayList<>(Arrays.asList("/*"));
 
     public Pattern getSkipPattern() {
         return skipPattern;
