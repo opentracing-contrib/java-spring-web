@@ -1,6 +1,8 @@
 opentracing:
   spring:
     web:
-      urlPatterns: /hello, /excluded
+      urlPatterns:
+      - /hello
+      - /excluded
       order: 99
       skipPattern: "/excluded"
