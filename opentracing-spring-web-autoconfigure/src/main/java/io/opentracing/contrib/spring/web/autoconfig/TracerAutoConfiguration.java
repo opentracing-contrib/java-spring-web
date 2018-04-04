@@ -3,6 +3,8 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +17,8 @@ import io.opentracing.util.GlobalTracer;
  * @author Pavol Loffay
  */
 @Configuration
+@EnableConfigurationProperties(WebTracingProperties.class)
+@ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
 public class TracerAutoConfiguration {
     private static final Log log = LogFactory.getLog(TracerAutoConfiguration.class.getName());
 
