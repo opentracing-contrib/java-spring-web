@@ -1,28 +1,28 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
-
+import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.web.client.RestTemplate;
 
-import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Pavol Loffay
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
+@ConditionalOnProperty(prefix = WebClientTracingProperties.CONFIGURATION_PREFIX, name = "enabled", matchIfMissing = true)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 public class RestTemplateAutoConfiguration {
     private static final Log log = LogFactory.getLog(RestTemplateAutoConfiguration.class);

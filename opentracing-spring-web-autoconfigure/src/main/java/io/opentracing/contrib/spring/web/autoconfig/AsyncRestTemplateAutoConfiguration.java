@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
 
 import org.apache.commons.logging.Log;
@@ -8,6 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.web.client.AsyncRestTemplate;
@@ -22,6 +24,7 @@ import java.util.Set;
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
+@ConditionalOnProperty(prefix = WebClientTracingProperties.CONFIGURATION_PREFIX, name = "enabled", matchIfMissing = true)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 public class AsyncRestTemplateAutoConfiguration {
     private static final Log log = LogFactory.getLog(AsyncRestTemplateAutoConfiguration.class);
