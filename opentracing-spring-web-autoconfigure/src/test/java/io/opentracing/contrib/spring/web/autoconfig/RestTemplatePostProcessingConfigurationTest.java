@@ -1,6 +1,10 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import io.opentracing.mock.MockTracer;
+import io.opentracing.tag.Tags;
+import io.opentracing.util.ThreadLocalScopeManager;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,17 +18,15 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-import io.opentracing.mock.MockTracer;
-import io.opentracing.util.ThreadLocalScopeManager;
-
 /**
  * @author Pavol Loffay
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {RestTemplateAutoConfigurationTest.SpringConfiguration.class})
+        classes = {RestTemplatePostProcessingConfigurationTest.SpringConfiguration.class},
+        properties = "opentracing.spring.web.client.component-name=test-client")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RestTemplateAutoConfigurationTest extends AutoConfigurationBaseTest  {
+public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurationBaseTest  {
 
     @Configuration
     @EnableAutoConfiguration
@@ -54,6 +56,11 @@ public class RestTemplateAutoConfigurationTest extends AutoConfigurationBaseTest
     @Qualifier("bar")
     private RestTemplate restTemplate;
 
+    @Before
+    public void setUp() {
+        mockTracer.reset();
+    }
+
     @Test
     public void testTracingRequest() {
         try {
@@ -62,5 +69,6 @@ public class RestTemplateAutoConfigurationTest extends AutoConfigurationBaseTest
             //ok UnknownHostException
         }
         Assert.assertEquals(1, mockTracer.finishedSpans().size());
+        Assert.assertEquals("test-client", mockTracer.finishedSpans().get(0).tags().get(Tags.COMPONENT.getKey()));
     }
 }

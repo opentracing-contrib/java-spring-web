@@ -68,6 +68,11 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
         future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
             @Override
             public void onSuccess(ClientHttpResponse httpResponse) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
@@ -81,6 +86,11 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
 
             @Override
             public void onFailure(Throwable ex) {
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {

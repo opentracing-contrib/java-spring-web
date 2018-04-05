@@ -2,7 +2,10 @@ package io.opentracing.contrib.spring.web.autoconfig;
 
 import io.opentracing.mock.MockTracer;
 import io.opentracing.util.ThreadLocalScopeManager;
+import org.awaitility.Awaitility;
+import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,16 +14,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import java.net.UnknownHostException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -30,18 +34,11 @@ import static org.junit.Assert.assertNotNull;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {ClientTracingAutoConfigurationDisabledTest.SpringConfiguration.class},
+        classes = {DisabledWebClientAutoConfigurationTest.SpringConfiguration.class},
         properties = {"opentracing.spring.web.client.enabled=false"})
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("test")
-public class ClientTracingAutoConfigurationDisabledTest extends AutoConfigurationBaseTest {
-
-    @Autowired(required = false)
-    private FilterRegistrationBean tracingFilter;
-    @Autowired(required = false)
-    private WebMvcConfigurerAdapter tracingHandlerInterceptor;
-    @Autowired
-    private SpringConfiguration configuration;
+public class DisabledWebClientAutoConfigurationTest extends AutoConfigurationBaseTest {
 
     @Configuration
     @EnableAutoConfiguration
@@ -63,6 +60,22 @@ public class ClientTracingAutoConfigurationDisabledTest extends AutoConfiguratio
         }
     }
 
+    @Autowired(required = false)
+    private FilterRegistrationBean tracingFilter;
+    @Autowired(required = false)
+    private WebMvcConfigurerAdapter tracingHandlerInterceptor;
+    @Autowired
+    private MockTracer mockTracer;
+    @Autowired
+    private RestTemplate restTemplate;
+    @Autowired
+    private AsyncRestTemplate asyncRestTemplate;
+
+    @Before
+    public void setUp() {
+        mockTracer.reset();
+    }
+
     @Test
     public void testWebConfigurationEnabled() {
         assertNotNull(tracingFilter);
@@ -72,23 +85,20 @@ public class ClientTracingAutoConfigurationDisabledTest extends AutoConfiguratio
     @Test
     public void testRestClientNotTracing() {
         try {
-            configuration.restTemplate().getForEntity("http://nonexisting.example.com", String.class);
+            restTemplate.getForEntity("http://nonexisting.example.com", String.class);
         } catch (ResourceAccessException ex) {
             //ok UnknownHostException
         }
-        Assert.assertEquals(0, configuration.tracer().finishedSpans().size());
+        Assert.assertEquals(0, mockTracer.finishedSpans().size());
     }
 
     @Test
-    public void testAsyncRestClientNotTracing() throws Exception {
-        try {
-            configuration.asyncRestTemplate().getForEntity("http://nonexisting.example.com", String.class).get(5, TimeUnit.SECONDS);
-        } catch (ExecutionException ex) {
-            //ok UnknownHostException
-            if (!(ex.getCause() instanceof UnknownHostException)) {
-                throw ex;
-            }
-        }
-        Assert.assertEquals(0, configuration.tracer().finishedSpans().size());
+    public void testAsyncRestClientNotTracing() {
+        ListenableFuture<ResponseEntity<String>> future = asyncRestTemplate.getForEntity("http://nonexisting.example.com", String.class);
+
+        AtomicBoolean done = AsyncRestTemplatePostProcessingConfigurationTest.addDoneCallback(future);
+        Awaitility.await().atMost(1000, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
+
+        Assert.assertEquals(0, mockTracer.finishedSpans().size());
     }
 }

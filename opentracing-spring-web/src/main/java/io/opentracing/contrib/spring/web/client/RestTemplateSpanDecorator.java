@@ -3,6 +3,7 @@ package io.opentracing.contrib.spring.web.client;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,11 +61,21 @@ public interface RestTemplateSpanDecorator {
     class StandardTags implements RestTemplateSpanDecorator {
         private static final Log log = LogFactory.getLog(StandardTags.class);
 
-        public static String COMPONENT_NAME = "java-spring-rest-template";
+        public static final String COMPONENT_NAME = "java-spring-rest-template";
+
+        private final String componentName;
+
+        public StandardTags() {
+            this(null);
+        }
+
+        public StandardTags(String componentName) {
+            this.componentName = Objects.toString(componentName, COMPONENT_NAME);
+        }
 
         @Override
         public void onRequest(HttpRequest request, Span span) {
-            Tags.COMPONENT.set(span, COMPONENT_NAME);
+            Tags.COMPONENT.set(span, componentName);
             // this can be sometimes only path e.g. "/foo"
             Tags.HTTP_URL.set(span, request.getURI().toString());
             Tags.HTTP_METHOD.set(span, request.getMethod().toString());
