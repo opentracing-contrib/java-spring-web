@@ -1,5 +1,6 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.util.ThreadLocalScopeManager;
 import org.awaitility.Awaitility;
@@ -15,6 +16,8 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -26,6 +29,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 
@@ -80,6 +84,20 @@ public class DisabledRestTemplateTracingAutoConfigurationTest extends AutoConfig
     public void testWebConfigurationEnabled() {
         assertNotNull(tracingFilter);
         assertNotNull(tracingHandlerInterceptor);
+    }
+
+    @Test
+    public void testInterceptorNotRegistered() {
+        for (ClientHttpRequestInterceptor interceptor : restTemplate.getInterceptors()) {
+            assertThat(interceptor).isNotInstanceOf(TracingRestTemplateInterceptor.class);
+        }
+    }
+
+    @Test
+    public void testAsyncInterceptorNotRegistered() {
+        for (AsyncClientHttpRequestInterceptor interceptor : asyncRestTemplate.getInterceptors()) {
+            assertThat(interceptor).isNotInstanceOf(TracingRestTemplateInterceptor.class);
+        }
     }
 
     @Test
