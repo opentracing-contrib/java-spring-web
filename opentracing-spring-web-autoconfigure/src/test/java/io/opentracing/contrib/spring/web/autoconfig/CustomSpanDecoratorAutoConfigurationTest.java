@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * @author cen38289
+ * @author Michal Dvorak
  * @since 4/5/18
  */
 @SpringBootTest(
