@@ -34,11 +34,11 @@ import static org.junit.Assert.assertNotNull;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {DisabledWebClientAutoConfigurationTest.SpringConfiguration.class},
+        classes = {DisabledRestTemplateTracingAutoConfigurationTest.SpringConfiguration.class},
         properties = {"opentracing.spring.web.client.enabled=false"})
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("test")
-public class DisabledWebClientAutoConfigurationTest extends AutoConfigurationBaseTest {
+public class DisabledRestTemplateTracingAutoConfigurationTest extends AutoConfigurationBaseTest {
 
     @Configuration
     @EnableAutoConfiguration

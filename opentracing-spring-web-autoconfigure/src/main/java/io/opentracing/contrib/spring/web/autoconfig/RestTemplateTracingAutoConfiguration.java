@@ -35,13 +35,13 @@ import java.util.Set;
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
-@ConditionalOnClass(ClientHttpRequestInterceptor.class)
+@ConditionalOnClass(RestTemplate.class)
 @ConditionalOnProperty(prefix = WebClientTracingProperties.CONFIGURATION_PREFIX, name = "enabled", matchIfMissing = true)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(WebClientTracingProperties.class)
-public class WebClientAutoConfiguration {
+public class RestTemplateTracingAutoConfiguration {
 
-    private static final Log log = LogFactory.getLog(WebClientAutoConfiguration.class);
+    private static final Log log = LogFactory.getLog(RestTemplateTracingAutoConfiguration.class);
 
     /**
      * Provides bean {@link RestTemplateSpanDecorator.StandardTags}.
