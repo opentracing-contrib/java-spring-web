@@ -3,7 +3,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.ThreadLocalScopeManager;
-import org.junit.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +26,7 @@ import org.springframework.web.client.RestTemplate;
         classes = {RestTemplatePostProcessingConfigurationTest.SpringConfiguration.class},
         properties = "opentracing.spring.web.client.component-name=test-client")
 @RunWith(SpringJUnit4ClassRunner.class)
-public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurationBaseTest  {
+public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurationBaseTest {
 
     @Configuration
     @EnableAutoConfiguration
@@ -38,8 +38,8 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
 
         @Bean
         @Qualifier("foo")
-        public RestTemplate restTemplateFoo(RestTemplateBuilder builder) {
-            return builder.build();
+        public RestTemplate restTemplateFoo() {
+            return new RestTemplate();
         }
 
         @Bean
@@ -53,8 +53,13 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
     private MockTracer mockTracer;
 
     @Autowired
+    @Qualifier("foo")
+    private RestTemplate fooRestTemplate;
+    @Autowired
     @Qualifier("bar")
-    private RestTemplate restTemplate;
+    private RestTemplate barRestTemplate;
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
 
     @Before
     public void setUp() {
@@ -62,13 +67,42 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
     }
 
     @Test
-    public void testTracingRequest() {
+    public void testTracingRequestCustom() {
         try {
-            restTemplate.getForEntity("http://nonexisting.example.com", String.class);
+            fooRestTemplate.getForEntity("http://nonexisting.example.com", String.class);
         } catch (ResourceAccessException ex) {
             //ok UnknownHostException
         }
-        Assert.assertEquals(1, mockTracer.finishedSpans().size());
-        Assert.assertEquals("test-client", mockTracer.finishedSpans().get(0).tags().get(Tags.COMPONENT.getKey()));
+
+        Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
+        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
+    }
+
+    @Test
+    public void testTracingRequestBean() {
+        try {
+            barRestTemplate.getForEntity("http://nonexisting.example.com", String.class);
+        } catch (ResourceAccessException ex) {
+            //ok UnknownHostException
+        }
+
+        // Note: Even that Builder has interceptor and AutoConfig tries to add another one,
+        // we still must have only one in the end
+        Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
+        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
+    }
+
+    @Test
+    public void testTracingFromBuilder() {
+        try {
+            restTemplateBuilder.build().getForEntity("http://nonexisting.example.com", String.class);
+        } catch (ResourceAccessException ex) {
+            //ok UnknownHostException
+        }
+
+        // Note: Even that Builder has interceptor and AutoConfig tries to add another one,
+        // we still must have only one in the end
+        Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
+        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
     }
 }
