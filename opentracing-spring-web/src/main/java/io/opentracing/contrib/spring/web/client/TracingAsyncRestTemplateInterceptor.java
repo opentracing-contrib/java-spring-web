@@ -1,11 +1,10 @@
 package io.opentracing.contrib.spring.web.client;
 
-import io.opentracing.Scope;
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import io.opentracing.propagation.Format;
-import io.opentracing.tag.Tags;
-import io.opentracing.util.GlobalTracer;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpRequest;
@@ -15,10 +14,12 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.propagation.Format;
+import io.opentracing.tag.Tags;
+import io.opentracing.util.GlobalTracer;
 
 /**
  * Note: From Spring Framework 5, {@link org.springframework.web.client.AsyncRestTemplate} is deprecated.
@@ -69,13 +70,8 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
         future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
             @Override
             public void onSuccess(ClientHttpResponse httpResponse) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
-                    for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                    for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
                             spanDecorator.onResponse(httpRequest, httpResponse, scope.span());
                         } catch (RuntimeException exDecorator) {
@@ -87,13 +83,8 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
 
             @Override
             public void onFailure(Throwable ex) {
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
-                    for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                    for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
                             spanDecorator.onError(httpRequest, ex, scope.span());
                         } catch (RuntimeException exDecorator) {
