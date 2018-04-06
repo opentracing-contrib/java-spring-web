@@ -1,18 +1,17 @@
 package io.opentracing.contrib.spring.web.client;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-
+import io.opentracing.Span;
+import io.opentracing.tag.Tags;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpResponse;
 
-import io.opentracing.Span;
-import io.opentracing.tag.Tags;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Decorate span by adding tags/logs or operation name change.
@@ -29,7 +28,7 @@ public interface RestTemplateSpanDecorator {
      * is called.
      *
      * @param request request
-     * @param span client span
+     * @param span    client span
      */
     void onRequest(HttpRequest request, Span span);
 
@@ -38,9 +37,9 @@ public interface RestTemplateSpanDecorator {
      * {@link org.springframework.http.client.ClientHttpRequestInterceptor#intercept(HttpRequest, byte[], ClientHttpRequestExecution)}
      * is called
      *
-     * @param request request
+     * @param request  request
      * @param response response
-     * @param span span
+     * @param span     span
      */
     void onResponse(HttpRequest request, ClientHttpResponse response, Span span);
 
@@ -50,10 +49,10 @@ public interface RestTemplateSpanDecorator {
      * is processing.
      *
      * @param request request
-     * @param ex exception
-     * @param span span
+     * @param ex      exception
+     * @param span    span
      */
-    void onError(HttpRequest request,  Throwable ex, Span span);
+    void onError(HttpRequest request, Throwable ex, Span span);
 
     /**
      * This decorator adds set of standard tags to the span.
@@ -66,7 +65,7 @@ public interface RestTemplateSpanDecorator {
         private final String componentName;
 
         public StandardTags() {
-            this(null);
+            this(COMPONENT_NAME);
         }
 
         public StandardTags(String componentName) {
