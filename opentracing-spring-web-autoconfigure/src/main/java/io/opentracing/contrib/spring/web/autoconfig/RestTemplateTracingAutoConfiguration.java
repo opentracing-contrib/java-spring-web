@@ -114,6 +114,7 @@ public class RestTemplateTracingAutoConfiguration {
      */
     @Configuration
     @ConditionalOnBean(InterceptingAsyncHttpAccessor.class)
+    @ConditionalOnClass(InterceptingAsyncHttpAccessor.class)
     public static class AsyncRestTemplatePostProcessingConfiguration {
 
         private final Tracer tracer;
