@@ -53,15 +53,9 @@ public class RestTemplateTracingAutoConfiguration {
     @ConditionalOnMissingBean(RestTemplateSpanDecorator.class)
     public static class StandardTagsConfiguration {
 
-        private final WebClientTracingProperties clientTracingProperties;
-
-        public StandardTagsConfiguration(WebClientTracingProperties clientTracingProperties) {
-            this.clientTracingProperties = clientTracingProperties;
-        }
-
         @Bean
         public RestTemplateSpanDecorator.StandardTags standardTagsRestTemplateSpanDecorator() {
-            return new RestTemplateSpanDecorator.StandardTags(clientTracingProperties.getComponentName());
+            return new RestTemplateSpanDecorator.StandardTags();
         }
     }
 

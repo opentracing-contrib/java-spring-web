@@ -1,6 +1,5 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
-import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -21,11 +20,6 @@ public class WebClientTracingProperties {
      * Does not affect instances created manually.
      */
     private boolean enabled = true;
-    /**
-     * Configures COMPONENT tag value, when default RestTemplateSpanDecorator.StandardTags bean is used.
-     * When custom RestTemplateSpanDecorator is provided, this configuration has no effect.
-     */
-    private String componentName = RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME;
 
     public boolean isEnabled() {
         return enabled;
@@ -33,13 +27,5 @@ public class WebClientTracingProperties {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public String getComponentName() {
-        return componentName;
-    }
-
-    public void setComponentName(String componentName) {
-        this.componentName = componentName;
     }
 }

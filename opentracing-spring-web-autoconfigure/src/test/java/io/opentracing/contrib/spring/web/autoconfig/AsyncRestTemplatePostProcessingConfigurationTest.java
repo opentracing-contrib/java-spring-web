@@ -1,5 +1,6 @@
 package io.opentracing.contrib.spring.web.autoconfig;
 
+import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.ThreadLocalScopeManager;
@@ -29,8 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {AsyncRestTemplatePostProcessingConfigurationTest.SpringConfiguration.class},
-        properties = "opentracing.spring.web.client.component-name=test-async-client")
+        classes = {AsyncRestTemplatePostProcessingConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class AsyncRestTemplatePostProcessingConfigurationTest extends AutoConfigurationBaseTest {
 
@@ -75,7 +75,6 @@ public class AsyncRestTemplatePostProcessingConfigurationTest extends AutoConfig
         Awaitility.await().atMost(1000, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
 
         Assert.assertEquals(1, mockTracer.finishedSpans().size());
-        Assert.assertEquals("test-async-client", mockTracer.finishedSpans().get(0).tags().get(Tags.COMPONENT.getKey()));
     }
 
     public static AtomicBoolean addDoneCallback(ListenableFuture<ResponseEntity<String>> future) {

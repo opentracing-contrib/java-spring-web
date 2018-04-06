@@ -23,8 +23,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {RestTemplatePostProcessingConfigurationTest.SpringConfiguration.class},
-        properties = "opentracing.spring.web.client.component-name=test-client")
+        classes = {RestTemplatePostProcessingConfigurationTest.SpringConfiguration.class})
 @RunWith(SpringJUnit4ClassRunner.class)
 public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurationBaseTest {
 
@@ -75,7 +74,6 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
         }
 
         Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
-        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
     }
 
     @Test
@@ -89,7 +87,6 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
         // Note: Even that Builder has interceptor and AutoConfig tries to add another one,
         // we still must have only one in the end
         Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
-        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
     }
 
     @Test
@@ -103,6 +100,5 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
         // Note: Even that Builder has interceptor and AutoConfig tries to add another one,
         // we still must have only one in the end
         Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
-        Assertions.assertThat(mockTracer.finishedSpans().get(0).tags()).containsEntry(Tags.COMPONENT.getKey(), "test-client");
     }
 }
