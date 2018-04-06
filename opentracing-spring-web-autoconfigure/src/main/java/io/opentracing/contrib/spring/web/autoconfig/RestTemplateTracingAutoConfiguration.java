@@ -3,7 +3,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
-import io.opentracing.contrib.spring.web.client.TracingRestTemplateCustomizer;
+import io.opentracing.contrib.spring.web.autoconfig.client.TracingRestTemplateCustomizer;
 import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

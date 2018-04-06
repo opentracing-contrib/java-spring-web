@@ -1,6 +1,8 @@
-package io.opentracing.contrib.spring.web.client;
+package io.opentracing.contrib.spring.web.autoconfig.client;
 
 import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
