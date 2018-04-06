@@ -32,7 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {ServerTracingAutoConfigurationTest.SpringConfiguration.class})
+        classes = {ServerTracingAutoConfigurationTest.SpringConfiguration.class},
+        properties = "opentracing.spring.web.client.enabled=false")
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("test")
 public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTest  {

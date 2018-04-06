@@ -97,7 +97,7 @@ public class DisabledWebClientAutoConfigurationTest extends AutoConfigurationBas
         ListenableFuture<ResponseEntity<String>> future = asyncRestTemplate.getForEntity("http://nonexisting.example.com", String.class);
 
         AtomicBoolean done = AsyncRestTemplatePostProcessingConfigurationTest.addDoneCallback(future);
-        Awaitility.await().atMost(1000, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
+        Awaitility.await().atMost(500, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
 
         Assert.assertEquals(0, mockTracer.finishedSpans().size());
     }

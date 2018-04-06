@@ -35,7 +35,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        classes = {CustomSpanDecoratorAutoConfigurationTest.SpringConfiguration.class})
+        classes = {
+                CustomSpanDecoratorAutoConfigurationTest.SpringConfiguration.class,
+                CustomSpanDecoratorAutoConfigurationTest.ClientConfiguration.class,
+        })
 @RunWith(SpringJUnit4ClassRunner.class)
 @ActiveProfiles("test")
 public class CustomSpanDecoratorAutoConfigurationTest extends AutoConfigurationBaseTest {
@@ -44,22 +47,9 @@ public class CustomSpanDecoratorAutoConfigurationTest extends AutoConfigurationB
     @EnableAutoConfiguration
     public static class SpringConfiguration {
 
-        @Autowired
-        private RestTemplateBuilder builder;
-
         @Bean
         public MockTracer tracer() {
             return new MockTracer(new ThreadLocalScopeManager());
-        }
-
-        @Bean
-        public RestTemplate restTemplate() {
-            return builder.build();
-        }
-
-        @Bean
-        public AsyncRestTemplate asyncRestTemplate() {
-            return new AsyncRestTemplate();
         }
 
         @Bean
@@ -78,6 +68,23 @@ public class CustomSpanDecoratorAutoConfigurationTest extends AutoConfigurationB
                 public void onError(HttpRequest request, Throwable ex, Span span) {
                 }
             };
+        }
+    }
+
+    @Configuration
+    public static class ClientConfiguration {
+
+        @Autowired
+        private RestTemplateBuilder builder;
+
+        @Bean
+        public RestTemplate restTemplate() {
+            return builder.build();
+        }
+
+        @Bean
+        public AsyncRestTemplate asyncRestTemplate() {
+            return new AsyncRestTemplate();
         }
     }
 

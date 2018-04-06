@@ -147,4 +147,23 @@ public class WebClientAutoConfiguration {
             restTemplate.setInterceptors(interceptors);
         }
     }
+
+    @Configuration
+    @ConditionalOnClass(RestTemplateCustomizer.class)
+    public static class TracingRestTemplateCustomizerConfiguration {
+
+        private final Tracer tracer;
+        private final List<RestTemplateSpanDecorator> spanDecorators;
+
+        public TracingRestTemplateCustomizerConfiguration(Tracer tracer,
+                                                          List<RestTemplateSpanDecorator> spanDecorators) {
+            this.tracer = tracer;
+            this.spanDecorators = spanDecorators;
+        }
+
+        @Bean
+        public TracingRestTemplateCustomizer tracingRestTemplateCustomizer() {
+            return new TracingRestTemplateCustomizer(tracer, spanDecorators);
+        }
+    }
 }
