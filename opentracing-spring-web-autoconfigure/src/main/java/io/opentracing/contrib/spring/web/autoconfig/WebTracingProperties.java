@@ -14,9 +14,18 @@ public class WebTracingProperties {
             "/api-docs.*|/autoconfig|/configprops|/dump|/health|/info|/metrics.*|" +
             "/mappings|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream");
 
+    private boolean enabled = true;
     private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
     private int order = Integer.MIN_VALUE;
     private List<String> urlPatterns = new ArrayList<>(Arrays.asList("/*"));
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     public Pattern getSkipPattern() {
         return skipPattern;
