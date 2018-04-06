@@ -3,6 +3,7 @@ package io.opentracing.contrib.spring.web.autoconfig;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateCustomizer;
 import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -12,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
@@ -104,6 +106,8 @@ public class WebClientAutoConfiguration {
 
     /**
      * Injects {@link TracingAsyncRestTemplateInterceptor} into {@link InterceptingAsyncHttpAccessor#getInterceptors()}.
+     * <p>
+     * Note: From Spring Framework 5, {@link org.springframework.web.client.AsyncRestTemplate} is deprecated.
      */
     @Configuration
     @ConditionalOnBean(InterceptingAsyncHttpAccessor.class)
