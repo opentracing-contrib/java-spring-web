@@ -101,7 +101,7 @@ public class CustomSpanDecoratorAutoConfigurationTest extends AutoConfigurationB
     }
 
     @Test
-    public void testRestClientNotTracing() {
+    public void testRestClientCustomTracing() {
         try {
             restTemplate.getForEntity("http://nonexisting.example.com", String.class);
         } catch (ResourceAccessException ex) {
@@ -112,7 +112,7 @@ public class CustomSpanDecoratorAutoConfigurationTest extends AutoConfigurationB
     }
 
     @Test
-    public void testAsyncRestClientNotTracing() {
+    public void testAsyncRestClientCustomTracing() {
         ListenableFuture<ResponseEntity<String>> future = asyncRestTemplate.getForEntity("http://nonexisting.example.com", String.class);
 
         AtomicBoolean done = AsyncRestTemplatePostProcessingConfigurationTest.addDoneCallback(future);
