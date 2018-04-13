@@ -22,6 +22,8 @@ import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
 
 /**
+ * Note: From Spring Framework 5, {@link org.springframework.web.client.AsyncRestTemplate} is deprecated.
+ *
  * @author Pavol Loffay
  */
 public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpRequestInterceptor {

@@ -60,7 +60,7 @@ public interface RestTemplateSpanDecorator {
     class StandardTags implements RestTemplateSpanDecorator {
         private static final Log log = LogFactory.getLog(StandardTags.class);
 
-        public static String COMPONENT_NAME = "java-spring-rest-template";
+        public static final String COMPONENT_NAME = "java-spring-rest-template";
 
         @Override
         public void onRequest(HttpRequest request, Span span) {
