@@ -76,8 +76,10 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
     private FilterRegistrationBean tracingFilter;
 
     @MockBean
+    @Qualifier("mockDecorator1")
     private ServletFilterSpanDecorator mockDecorator1;
     @MockBean
+    @Qualifier("mockDecorator2")
     private ServletFilterSpanDecorator mockDecorator2;
 
     @Test

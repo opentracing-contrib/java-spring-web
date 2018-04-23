@@ -45,9 +45,9 @@
     <version.io.opentracing.contrib-opentracing-tracerresolver>0.1.4</version.io.opentracing.contrib-opentracing-tracerresolver>
     <version.junit>4.12</version.junit>
     <version.org.mockito-mockito-all>1.10.19</version.org.mockito-mockito-all>
-    <version.org.springframework.boot>1.4.1.RELEASE</version.org.springframework.boot>
-    <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-dependencies  -->
-    <version.org.springframework>4.3.3.RELEASE</version.org.springframework>
+    <version.org.springframework.boot>1.5.12.RELEASE</version.org.springframework.boot>
+    <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/1.5.x/spring-boot-dependencies/pom.xml  -->
+    <version.org.springframework>4.3.16.RELEASE</version.org.springframework>
 
     <!-- plugins -->
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
