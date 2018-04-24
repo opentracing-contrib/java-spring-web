@@ -72,7 +72,7 @@ public class AsyncRestTemplatePostProcessingConfigurationTest extends AutoConfig
         ListenableFuture<ResponseEntity<String>> future = asyncRestTemplate.getForEntity("http://example.com", String.class);
 
         AtomicBoolean done = addDoneCallback(future);
-        Awaitility.await().atMost(1000, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
+        Awaitility.await().atMost(3000, TimeUnit.MILLISECONDS).untilAtomic(done, IsEqual.equalTo(true));
 
         Assert.assertEquals(1, mockTracer.finishedSpans().size());
     }
