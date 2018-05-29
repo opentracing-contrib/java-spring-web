@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -28,6 +29,8 @@ import org.apache.commons.logging.LogFactory;
 
 import static java.lang.String.format;
 
+import javax.servlet.Servlet;
+
 /**
  * @author Pavol Loffay
  * @author Eddú Meléndez
@@ -37,6 +40,7 @@ import static java.lang.String.format;
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(WebTracingProperties.class)
+@ConditionalOnClass(Servlet.class)
 @ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
