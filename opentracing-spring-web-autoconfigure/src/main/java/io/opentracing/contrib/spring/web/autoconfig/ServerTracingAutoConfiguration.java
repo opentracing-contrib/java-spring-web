@@ -29,7 +29,6 @@ import org.apache.commons.logging.LogFactory;
 
 import static java.lang.String.format;
 
-import javax.servlet.Servlet;
 
 /**
  * @author Pavol Loffay
@@ -40,7 +39,7 @@ import javax.servlet.Servlet;
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(WebTracingProperties.class)
-@ConditionalOnClass(Servlet.class)
+@ConditionalOnClass(WebMvcConfigurerAdapter.class)
 @ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
