@@ -1,6 +1,7 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.common.app;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.async.AsyncWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -125,6 +127,16 @@ public class TestController {
     public String exception() throws Exception {
         verifyActiveSpan();
         throw new Exception(EXCEPTION_MESSAGE);
+    }
+
+    @RequestMapping("/asyncException")
+    public Callable<String> asyncException() throws Exception {
+        return new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                throw new Exception(EXCEPTION_MESSAGE + "_async");
+            }
+        };
     }
 
     @RequestMapping("/mappedException")
