@@ -26,7 +26,7 @@ If you are using Spring Boot the easiest way how to configure OpenTracing instru
 ```xml
 <dependency>
   <groupId>io.opentracing.contrib</groupId>
-  <artifactId>opentracing-spring-web-autoconfigure</artifactId>
+  <artifactId>opentracing-spring-web-starter</artifactId>
 </dependency>
 
 ```

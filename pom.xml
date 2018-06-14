@@ -62,7 +62,7 @@
 
   <modules>
     <module>opentracing-spring-web</module>
-    <module>opentracing-spring-web-autoconfigure</module>
+    <module>opentracing-spring-web-starter</module>
     <module>opentracing-spring-web-itest</module>
   </modules>
 
