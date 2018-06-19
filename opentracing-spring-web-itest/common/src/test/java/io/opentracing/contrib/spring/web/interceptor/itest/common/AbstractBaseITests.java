@@ -171,6 +171,45 @@ public abstract class AbstractBaseITests {
     }
 
     @Test
+    public void testControllerAsyncException() throws Exception {
+        {
+            getRestTemplate().getForEntity("/asyncException", String.class);
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(2));
+        }
+        List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
+        Assert.assertEquals(2, mockSpans.size());
+        assertOnErrors(mockSpans);
+
+        MockSpan span = mockSpans.get(1);
+        Assert.assertEquals("asyncException", span.operationName());
+        Assert.assertEquals(6, span.tags().size());
+        Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));
+        Assert.assertEquals(getUrl("/asyncException"), span.tags().get(Tags.HTTP_URL.getKey()));
+        Assert.assertEquals(500, span.tags().get(Tags.HTTP_STATUS.getKey()));
+        Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
+        Assert.assertEquals(Boolean.TRUE, span.tags().get(Tags.ERROR.getKey()));
+
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion", "error"));
+
+//        error log
+        Assert.assertEquals(3, span.logEntries().get(4).fields().size());
+        Assert.assertEquals(Tags.ERROR.getKey(), span.logEntries().get(4).fields().get("event"));
+        Assert.assertEquals(TestController.EXCEPTION_MESSAGE + "_async",
+                span.logEntries().get(4).fields().get("message"));
+        Assert.assertNotNull(span.logEntries().get(4).fields().get("stack"));
+
+        span = mockSpans.get(0);
+        Assert.assertEquals(0, span.tags().size());
+        Assert.assertEquals(mockSpans.get(1).context().spanId(), span.parentId());
+        Assert.assertEquals(0, span.tags().size());
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterCompletion"));
+        Assert.assertEquals("BasicErrorController",
+                span.logEntries().get(0).fields().get("handler.class_simple_name"));
+    }
+
+    @Test
     public void testControllerMappedException() throws Exception {
         {
             getRestTemplate().getForEntity("/mappedException", String.class);

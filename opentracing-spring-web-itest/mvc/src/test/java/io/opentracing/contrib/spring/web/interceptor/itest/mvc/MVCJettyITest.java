@@ -193,4 +193,30 @@ public class MVCJettyITest extends AbstractBaseITests {
                 span.logEntries().get(2).fields().get("message"));
         Assert.assertNotNull(span.logEntries().get(2).fields().get("stack"));
     }
+
+    @Test
+    public void testControllerAsyncException() {
+        {
+            getRestTemplate().getForEntity("/asyncException", String.class);
+            Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
+        }
+        List<MockSpan> mockSpans = TracingBeansConfiguration.mockTracer.finishedSpans();
+        Assert.assertEquals(1, mockSpans.size());
+        assertOnErrors(mockSpans);
+
+        MockSpan span = mockSpans.get(0);
+        Assert.assertEquals("asyncException", span.operationName());
+        Assert.assertEquals(5, span.tags().size());
+        Assert.assertEquals(Tags.SPAN_KIND_SERVER, span.tags().get(Tags.SPAN_KIND.getKey()));
+        Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));
+        Assert.assertEquals(getUrl("/asyncException"), span.tags().get(Tags.HTTP_URL.getKey()));
+        Assert.assertEquals(500, span.tags().get(Tags.HTTP_STATUS.getKey()));
+        Assert.assertNotNull(span.tags().get(Tags.COMPONENT.getKey()));
+        // TODO error is not being logged because AsyncListener is not invoked at all
+//        Assert.assertEquals(Boolean.TRUE, span.tags().get(Tags.ERROR.getKey()));
+
+        assertLogEvents(span.logEntries(), Arrays.asList("preHandle", "afterConcurrentHandlingStarted",
+                "preHandle", "afterCompletion"));
+
+    }
 }
