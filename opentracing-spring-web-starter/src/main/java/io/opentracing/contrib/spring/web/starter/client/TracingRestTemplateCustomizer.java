@@ -43,7 +43,7 @@ public class TracingRestTemplateCustomizer implements RestTemplateCustomizer {
         }
 
         interceptors = new ArrayList<>(interceptors);
-        interceptors.add(new TracingRestTemplateInterceptor(tracer, spanDecorators));
+        interceptors.add(0, new TracingRestTemplateInterceptor(tracer, spanDecorators));
         restTemplate.setInterceptors(interceptors);
     }
 }

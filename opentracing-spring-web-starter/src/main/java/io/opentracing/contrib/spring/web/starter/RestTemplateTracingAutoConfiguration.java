@@ -97,7 +97,7 @@ public class RestTemplateTracingAutoConfiguration {
 
             log.debug("Adding " + TracingRestTemplateInterceptor.class.getSimpleName() + " to " + restTemplate);
             interceptors = new ArrayList<>(interceptors);
-            interceptors.add(new TracingRestTemplateInterceptor(tracer, spanDecorators));
+            interceptors.add(0, new TracingRestTemplateInterceptor(tracer, spanDecorators));
             restTemplate.setInterceptors(interceptors);
         }
     }
@@ -142,7 +142,7 @@ public class RestTemplateTracingAutoConfiguration {
 
             log.debug("Adding " + TracingAsyncRestTemplateInterceptor.class.getSimpleName() + " to " + restTemplate);
             interceptors = new ArrayList<>(interceptors);
-            interceptors.add(new TracingAsyncRestTemplateInterceptor(tracer, spanDecorators));
+            interceptors.add(0, new TracingAsyncRestTemplateInterceptor(tracer, spanDecorators));
             restTemplate.setInterceptors(interceptors);
         }
     }
