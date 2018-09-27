@@ -52,6 +52,17 @@
     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
+  <!-- span check filter -->
+  <filter>
+    <filter-name>spanCheckerFilter</filter-name>
+    <filter-class>io.opentracing.contrib.spring.web.interceptor.itest.common.app.SpanCheckerFilter</filter-class>
+    <async-supported>true</async-supported>
+  </filter>
+  <filter-mapping>
+    <filter-name>spanCheckerFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
   <!-- security -->
   <filter>
     <filter-name>springSecurityFilterChain</filter-name>
