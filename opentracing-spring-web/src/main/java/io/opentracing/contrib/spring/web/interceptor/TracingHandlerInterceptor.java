@@ -19,7 +19,8 @@ import io.opentracing.Tracer;
 import io.opentracing.contrib.web.servlet.filter.TracingFilter;
 
 /**
- * Tracing handler interceptor for spring web. It creates a new span for an incoming request.
+ * Tracing handler interceptor for spring web. It creates a new span for an incoming request
+ * if there is no active request and a separate span for Spring's exception handling.
  * This handler depends on {@link TracingFilter}. Both classes have to be properly configured.
  *
  * <p>HTTP tags and logged errors are added in {@link TracingFilter}. This interceptor adds only
@@ -71,7 +72,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             return true;
         }
 
-        /**
+        /*
          * 1. check if there is an active span, it has been activated in servlet filter or in this interceptor (forward)
          * 2. if there is no active span then it can be handling of an async request or spring boot default error handling
          */
@@ -87,14 +88,14 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
                         .addReference(References.FOLLOWS_FROM, TracingFilter.serverSpanContext(httpServletRequest))
                         .startActive(true);
             }
+            Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
+            activeSpanStack.push(serverSpan);
         }
 
         for (HandlerInterceptorSpanDecorator decorator : decorators) {
             decorator.onPreHandle(httpServletRequest, handler, serverSpan.span());
         }
 
-        Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
-        activeSpanStack.push(serverSpan);
         return true;
     }
 
@@ -107,15 +108,26 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             return;
         }
 
+        Span span;
         Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
-        Scope scope = activeSpanStack.pop();
-
-        for (HandlerInterceptorSpanDecorator decorator : decorators) {
-            decorator.onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, scope.span());
+        if(activeSpanStack.size() > 0) {
+            Scope scope = activeSpanStack.pop();
+            span = scope.span();
+            onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
+            scope.close();
+        } else {
+            span = tracer.activeSpan();
+            onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
         }
 
-        httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, scope.span());
-        scope.close();
+        httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, span);
+
+    }
+
+    private void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler, Span span) {
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
+        }
     }
 
     @Override
@@ -127,12 +139,20 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         }
 
         Deque<Scope> scopeStack = getScopeStack(httpServletRequest);
-        Scope scope = scopeStack.pop();
-
-        for (HandlerInterceptorSpanDecorator decorator : decorators) {
-            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, scope.span());
+        if(scopeStack.size() > 0) {
+            Scope scope = scopeStack.pop();
+            onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, scope.span());
+            scope.close();
+        } else {
+            onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, tracer.activeSpan());
         }
-        scope.close();
+    }
+
+    private void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+                                   Object handler, Exception ex, Span span) {
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, span);
+        }
     }
 
     private Deque<Scope> getScopeStack(HttpServletRequest request) {
