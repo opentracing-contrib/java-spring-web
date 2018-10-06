@@ -84,16 +84,16 @@ restTemplate.setInterceptors(Collections.singletonList(new TracingRestTemplateIn
 ```java
 @RequestMapping("/hello")
 public String hello(HttpServletRequest request) {
-    ActiveSpan serverSpan = tracer.activeSpan();
+    Span serverSpan = tracer.activeSpan();
 
-    ActiveSpan span = tracer.buildSpan("localSpan");
-            .asChildOf(serverSpan.context())
-            .start();
+    Span span = tracer.buildSpan("localSpan")
+                      .asChildOf(serverSpan.context())
+                      .start();
     try {
         // Traced work happens between start() and deactivate();
         return "Hello world!";
     } finally {
-        span.deactivate();
+        span.finish();
     }
 }
 ```
