@@ -6,8 +6,10 @@ import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
 import io.opentracing.contrib.spring.web.client.TracingAsyncRestTemplateInterceptor;
 import io.opentracing.contrib.spring.web.starter.client.TracingRestTemplateCustomizer;
 import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
+import io.opentracing.contrib.spring.web.starter.properties.WebClientTracingProperties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -18,10 +20,12 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.support.InterceptingAsyncHttpAccessor;
 import org.springframework.http.client.support.InterceptingHttpAccessor;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.RestTemplate;
 
@@ -41,23 +45,26 @@ import java.util.Set;
 @ConditionalOnBean(Tracer.class)
 @ConditionalOnClass(RestTemplate.class)
 @ConditionalOnProperty(prefix = WebClientTracingProperties.CONFIGURATION_PREFIX, name = "enabled", matchIfMissing = true)
-@AutoConfigureAfter(TracerAutoConfiguration.class)
+@AutoConfigureAfter({ TracerAutoConfiguration.class, RestTemplateSpanDecoratorAutoconfiguration.class })
 @EnableConfigurationProperties(WebClientTracingProperties.class)
 public class RestTemplateTracingAutoConfiguration {
 
     private static final Log log = LogFactory.getLog(RestTemplateTracingAutoConfiguration.class);
 
-    /**
-     * Provides bean {@link RestTemplateSpanDecorator.StandardTags}.
-     */
-    @Configuration
-    @ConditionalOnMissingBean(RestTemplateSpanDecorator.class)
-    public static class StandardTagsConfiguration {
 
-        @Bean
-        public RestTemplateSpanDecorator.StandardTags standardTagsRestTemplateSpanDecorator() {
-            return new RestTemplateSpanDecorator.StandardTags();
+    protected static List<RestTemplateSpanDecorator> decoratorsWithStandardTags(
+                                                        ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators) {
+
+        List<RestTemplateSpanDecorator> allDecorators = new ArrayList<>();
+        allDecorators.add(new RestTemplateSpanDecorator.StandardTags());
+
+        List<RestTemplateSpanDecorator> providedDecorators = spanDecorators.getIfAvailable();
+        if (!CollectionUtils.isEmpty(providedDecorators)) {
+            providedDecorators = new ArrayList<>(providedDecorators);
+            AnnotationAwareOrderComparator.sort(providedDecorators);
+            allDecorators.addAll(providedDecorators);
         }
+        return allDecorators;
     }
 
     /**
@@ -68,11 +75,11 @@ public class RestTemplateTracingAutoConfiguration {
     public static class RestTemplatePostProcessingConfiguration {
 
         private final Tracer tracer;
-        private final List<RestTemplateSpanDecorator> spanDecorators;
+        private final ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators;
         private final Set<InterceptingHttpAccessor> restTemplates;
 
         public RestTemplatePostProcessingConfiguration(Tracer tracer,
-                                                       List<RestTemplateSpanDecorator> spanDecorators,
+                                                       ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators,
                                                        Set<InterceptingHttpAccessor> restTemplates) {
             this.tracer = tracer;
             this.spanDecorators = spanDecorators;
@@ -97,7 +104,7 @@ public class RestTemplateTracingAutoConfiguration {
 
             log.debug("Adding " + TracingRestTemplateInterceptor.class.getSimpleName() + " to " + restTemplate);
             interceptors = new ArrayList<>(interceptors);
-            interceptors.add(new TracingRestTemplateInterceptor(tracer, spanDecorators));
+            interceptors.add(new TracingRestTemplateInterceptor(tracer, decoratorsWithStandardTags(spanDecorators)));
             restTemplate.setInterceptors(interceptors);
         }
     }
@@ -113,11 +120,11 @@ public class RestTemplateTracingAutoConfiguration {
     public static class AsyncRestTemplatePostProcessingConfiguration {
 
         private final Tracer tracer;
-        private final List<RestTemplateSpanDecorator> spanDecorators;
+        private final ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators;
         private final Set<InterceptingAsyncHttpAccessor> restTemplates;
 
         public AsyncRestTemplatePostProcessingConfiguration(Tracer tracer,
-                                                            List<RestTemplateSpanDecorator> spanDecorators,
+                                                            ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators,
                                                             Set<InterceptingAsyncHttpAccessor> restTemplates) {
             this.tracer = tracer;
             this.spanDecorators = spanDecorators;
@@ -142,7 +149,7 @@ public class RestTemplateTracingAutoConfiguration {
 
             log.debug("Adding " + TracingAsyncRestTemplateInterceptor.class.getSimpleName() + " to " + restTemplate);
             interceptors = new ArrayList<>(interceptors);
-            interceptors.add(new TracingAsyncRestTemplateInterceptor(tracer, spanDecorators));
+            interceptors.add(new TracingAsyncRestTemplateInterceptor(tracer, decoratorsWithStandardTags(spanDecorators)));
             restTemplate.setInterceptors(interceptors);
         }
     }
@@ -158,10 +165,10 @@ public class RestTemplateTracingAutoConfiguration {
     public static class TracingRestTemplateCustomizerConfiguration {
 
         private final Tracer tracer;
-        private final List<RestTemplateSpanDecorator> spanDecorators;
+        private final ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators;
 
         public TracingRestTemplateCustomizerConfiguration(Tracer tracer,
-                                                          List<RestTemplateSpanDecorator> spanDecorators) {
+                                                          ObjectProvider<List<RestTemplateSpanDecorator>> spanDecorators) {
             this.tracer = tracer;
             this.spanDecorators = spanDecorators;
         }
@@ -169,7 +176,7 @@ public class RestTemplateTracingAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean(TracingRestTemplateCustomizer.class)
         public TracingRestTemplateCustomizer tracingRestTemplateCustomizer() {
-            return new TracingRestTemplateCustomizer(tracer, spanDecorators);
+            return new TracingRestTemplateCustomizer(tracer, decoratorsWithStandardTags(spanDecorators));
         }
     }
 }

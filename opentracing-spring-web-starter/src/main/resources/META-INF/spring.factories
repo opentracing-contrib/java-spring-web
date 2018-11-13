@@ -1,3 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.opentracing.contrib.spring.web.starter.ServerTracingAutoConfiguration,\
+io.opentracing.contrib.spring.web.starter.RestTemplateSpanDecoratorAutoconfiguration,\
 io.opentracing.contrib.spring.web.starter.RestTemplateTracingAutoConfiguration

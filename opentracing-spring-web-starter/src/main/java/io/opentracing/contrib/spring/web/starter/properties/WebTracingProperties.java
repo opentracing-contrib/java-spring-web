@@ -1,4 +1,4 @@
-package io.opentracing.contrib.spring.web.starter;
+package io.opentracing.contrib.spring.web.starter.properties;
 
 import java.util.*;
 import java.util.regex.Pattern;

@@ -1,5 +1,10 @@
 package io.opentracing.contrib.spring.web.starter;
 
+import io.opentracing.Span;
+import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator;
+import io.opentracing.contrib.spring.web.client.RestTemplateSpanDecorator.StandardTags;
+import io.opentracing.contrib.spring.web.client.TracingRestTemplateInterceptor;
+import io.opentracing.contrib.spring.web.client.decorator.RestTemplateHeaderSpanDecorator;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.util.ThreadLocalScopeManager;
 import org.assertj.core.api.Assertions;
@@ -13,6 +18,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpRequest;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -45,6 +53,23 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
         public RestTemplate restTemplateBar(RestTemplateBuilder builder) {
             return builder.build();
         }
+
+        @Bean
+        @Qualifier("mydecorator")
+        public RestTemplateSpanDecorator customRestTemplateSpanDecorator() {
+            return new MySpanDecorator();
+        }
+    }
+
+    public static class MySpanDecorator implements RestTemplateSpanDecorator {
+        @Override
+        public void onRequest(HttpRequest request, Span span) {}
+
+        @Override
+        public void onResponse(HttpRequest request, ClientHttpResponse response, Span span) {}
+
+        @Override
+        public void onError(HttpRequest request, Throwable ex, Span span) {}
     }
 
     @Autowired
@@ -58,6 +83,9 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
     private RestTemplate barRestTemplate;
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;
+    @Autowired
+    @Qualifier("mydecorator")
+    private RestTemplateSpanDecorator restTemplateSpanDecorator;
 
     @Before
     public void setUp() {
@@ -99,5 +127,20 @@ public class RestTemplatePostProcessingConfigurationTest extends AutoConfigurati
         // Note: Even that Builder has interceptor and AutoConfig tries to add another one,
         // we still must have only one in the end
         Assertions.assertThat(mockTracer.finishedSpans()).hasSize(1);
+    }
+
+    @Test
+    public void testCustomTracingRestTemplateInterceptor() {
+        TracingRestTemplateInterceptor tracingInterceptor = null;
+        for (ClientHttpRequestInterceptor interceptor : fooRestTemplate.getInterceptors()) {
+            if (interceptor instanceof TracingRestTemplateInterceptor) {
+                tracingInterceptor = (TracingRestTemplateInterceptor) interceptor;
+            }
+        }
+
+        Assertions.assertThat(tracingInterceptor).isNotNull();
+        Assertions.assertThat(tracingInterceptor.getSpanDecorators()).hasSize(3)
+            .hasOnlyElementsOfTypes(MySpanDecorator.class, RestTemplateSpanDecorator.StandardTags.class,
+                RestTemplateHeaderSpanDecorator.class);
     }
 }

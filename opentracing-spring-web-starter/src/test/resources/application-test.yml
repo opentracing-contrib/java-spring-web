@@ -6,3 +6,6 @@ opentracing:
       - /excluded
       order: 99
       skipPattern: "/excluded"
+
+logging:
+  level: debug

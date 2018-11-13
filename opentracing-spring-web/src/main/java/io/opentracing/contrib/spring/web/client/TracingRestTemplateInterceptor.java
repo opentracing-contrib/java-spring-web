@@ -94,4 +94,8 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
 
         return httpResponse;
     }
+
+    public List<RestTemplateSpanDecorator> getSpanDecorators() {
+        return spanDecorators;
+    }
 }
