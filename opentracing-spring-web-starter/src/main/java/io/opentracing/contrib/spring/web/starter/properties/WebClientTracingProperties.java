@@ -31,7 +31,8 @@ public class WebClientTracingProperties {
      * To exclude bean by name from the Post processing
      */
     private Set<String> excludedBeans = new HashSet<>();
-    private HeaderProperties header = new HeaderProperties();
+
+    private HeaderProperties header = new ClientHeaderProperties();
 
     public boolean isEnabled() {
         return enabled;

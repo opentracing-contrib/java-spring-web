@@ -122,7 +122,7 @@ public class ServerTracingAutoConfigurationTest extends AutoConfigurationBaseTes
         // Ensure the loaded properties (application-test.yml) are used
         assertThat(tracingFilter.getOrder()).isEqualTo(99);
     }
-    
+
     public Callable<Integer> reportedSpansSize() {
         return new Callable<Integer>() {
             @Override

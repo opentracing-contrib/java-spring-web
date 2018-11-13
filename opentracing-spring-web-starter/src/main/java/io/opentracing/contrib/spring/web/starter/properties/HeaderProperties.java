@@ -1,12 +1,11 @@
 package io.opentracing.contrib.spring.web.starter.properties;
 
-import io.opentracing.contrib.spring.web.client.decorator.RestTemplateHeaderSpanDecorator.HeaderEntry;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.core.Ordered;
 
 
-public class HeaderProperties {
+public abstract class HeaderProperties<ENTRY> {
 
     private boolean enabled = true;
     /**
@@ -14,7 +13,8 @@ public class HeaderProperties {
      */
     private int order = Ordered.LOWEST_PRECEDENCE - 20000;
     private String baseTagKey = "http.header";
-    private List<HeaderEntry> entries = new ArrayList<>();
+  private List<ENTRY> entries = new ArrayList<>();
+
 
     public boolean isEnabled() {
       return enabled;
@@ -40,12 +40,12 @@ public class HeaderProperties {
       this.baseTagKey = baseTagKey;
     }
 
-  public List<HeaderEntry> getEntries() {
+  public List<ENTRY> getEntries() {
     return entries;
   }
 
   public void setEntries(
-      List<HeaderEntry> entries) {
+      List<ENTRY> entries) {
     this.entries = entries;
   }
 }

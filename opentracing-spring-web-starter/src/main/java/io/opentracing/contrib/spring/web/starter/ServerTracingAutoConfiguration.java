@@ -1,8 +1,8 @@
 package io.opentracing.contrib.spring.web.starter;
 
 import io.opentracing.contrib.spring.web.starter.properties.WebTracingProperties;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -16,6 +16,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -39,10 +40,10 @@ import static java.lang.String.format;
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnBean(Tracer.class)
-@AutoConfigureAfter(TracerAutoConfiguration.class)
+@AutoConfigureAfter({ TracerAutoConfiguration.class, ServletFilterSpanDecoratorAutoconfiguration.class })
 @EnableConfigurationProperties(WebTracingProperties.class)
 @ConditionalOnClass(WebMvcConfigurerAdapter.class)
-@ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(prefix = WebTracingProperties.CONFIGURATION_PREFIX, name = "enabled", matchIfMissing = true)
 public class ServerTracingAutoConfiguration {
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
@@ -63,12 +64,17 @@ public class ServerTracingAutoConfiguration {
                 tracingConfiguration.getUrlPatterns().toString(),
                 tracingConfiguration.getSkipPattern()));
 
-        List<ServletFilterSpanDecorator> decorators = servletFilterSpanDecorator.getIfAvailable();
-        if (CollectionUtils.isEmpty(decorators)) {
-            decorators = Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS);
+        List<ServletFilterSpanDecorator> spanDecorators = new ArrayList<>();
+        spanDecorators.add(ServletFilterSpanDecorator.STANDARD_TAGS);
+
+        List<ServletFilterSpanDecorator> providedDecorators = this.servletFilterSpanDecorator.getIfAvailable();
+        if (!CollectionUtils.isEmpty(providedDecorators)) {
+            providedDecorators = new ArrayList<>(providedDecorators);
+            AnnotationAwareOrderComparator.sort(providedDecorators);
+            spanDecorators.addAll(providedDecorators);
         }
 
-        TracingFilter tracingFilter = new TracingFilter(tracer, decorators, tracingConfiguration.getSkipPattern());
+        TracingFilter tracingFilter = new TracingFilter(tracer, spanDecorators, tracingConfiguration.getSkipPattern());
 
         FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
         filterRegistrationBean.setUrlPatterns(tracingConfiguration.getUrlPatterns());

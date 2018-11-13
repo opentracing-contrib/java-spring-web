@@ -21,6 +21,7 @@ public class WebTracingProperties {
     private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
     private int order = Integer.MIN_VALUE;
     private List<String> urlPatterns = new ArrayList<>(Collections.singletonList("/*"));
+    private HeaderProperties header = new ServerHeaderProperties();
 
     public boolean isEnabled() {
         return enabled;
@@ -52,6 +53,14 @@ public class WebTracingProperties {
 
     public void setOrder(int order) {
         this.order = order;
+    }
+
+    public HeaderProperties getHeader() {
+        return header;
+    }
+
+    public void setHeader(HeaderProperties header) {
+        this.header = header;
     }
 
 }
