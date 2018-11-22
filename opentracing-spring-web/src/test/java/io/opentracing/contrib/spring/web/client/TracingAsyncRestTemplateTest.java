@@ -11,9 +11,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import org.hamcrest.core.StringContains;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.internal.matchers.Contains;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
 import org.springframework.test.web.client.ExpectedCount;
@@ -65,7 +65,7 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<Asyn
     public void testMultipleRequests() throws InterruptedException, ExecutionException {
         final String url = "http://localhost:8080/foo/";
         int numberOfCalls = 1000;
-        mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(new Contains("/foo")))
+        mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(new StringContains("/foo")))
                 .andRespond(MockRestResponseCreators.withSuccess());
 
         ExecutorService executorService = Executors.newFixedThreadPool(100);
