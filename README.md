@@ -18,6 +18,11 @@ then tracing interceptor adds spring related tags and logs. There are use case w
 a request processing in filter finished, in this case interceptor starts a new span as `followsFrom` 
 which references the initial span created in the servlet filter.
 
+## Library versions
+
+Versions 1.x.y of the library are meant to target Spring Framework 5.x and Spring Boot 2.x while versions 0.x.y are meant to be used with Spring Framework 4.3 and Spring Boot 1.5
+
+
 ## Configuration
 
 ### Spring Boot Auto-configuration
