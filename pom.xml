@@ -47,7 +47,7 @@
     <version.junit>4.12</version.junit>
     <version.org.mockito-mockito-core>2.23.4</version.org.mockito-mockito-core>
     <version.org.springframework.boot>2.1.0.RELEASE</version.org.springframework.boot>
-    <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/1.5.x/spring-boot-dependencies/pom.xml  -->
+    <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml  -->
     <version.org.springframework>5.1.2.RELEASE</version.org.springframework>
 
     <!-- plugins -->
