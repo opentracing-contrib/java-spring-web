@@ -1,3 +1,16 @@
+/*
+ * Copyright 2016-2018 The OpenTracing Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package io.opentracing.contrib.spring.web.client;
 
 import io.opentracing.Scope;
@@ -7,9 +20,10 @@ import io.opentracing.tag.Tags;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,41 +41,34 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 /**
- * @author Pavol Loffay
+ * @author Csaba Kos
  */
-public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest {
+public class TracingWebClientTest extends AbstractTracingClientTest {
 
-    public TracingAsyncRestTemplateTest() {
+    public TracingWebClientTest() {
         super(tracer -> {
-            final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
-            restTemplate.setInterceptors(Collections.singletonList(
-                    new TracingAsyncRestTemplateInterceptor(tracer,
-                            Collections.singletonList(new RestTemplateSpanDecorator.StandardTags()))));
-
+            final WebClient webClient = WebClient.builder()
+                    .filter(new TracingExchangeFilterFunction(tracer,
+                            Collections.singletonList(new WebClientSpanDecorator.StandardTags())))
+                    .build();
             return new Client() {
                 @Override
                 public <T> ResponseEntity<T> getForEntity(String url, Class<T> clazz) {
-                    ListenableFuture<ResponseEntity<T>> forEntity = restTemplate.getForEntity(url, clazz);
-                    try {
-                        // By converting to CompletableFuture<>, we ensure that the callbacks are finished even in
-                        // case of exception
-                        return forEntity.completable().get();
-                    } catch (final ExecutionException e) {
-                        throw new RuntimeException(e.getCause());
-                    } catch (final InterruptedException e) {
-                        e.printStackTrace();
-                        Assert.fail();
-                        return null;
-                    }
+                    Mono<ResponseEntity<T>> forEntity = webClient.get()
+                            .uri(URI.create(url))
+                            .exchange()
+                            .flatMap(clientResponse -> clientResponse.toEntity(clazz));
+                    return forEntity.block();
                 }
             };
-        }, RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME);
+        }, WebClientSpanDecorator.StandardTags.COMPONENT_NAME);
     }
 
     @Test
     public void testMultipleRequests() throws InterruptedException, ExecutionException {
         final String url = wireMockRule.url("/foo/");
         int numberOfCalls = 1000;
+
         stubFor(get(urlPathMatching(".*/foo/.*"))
                 .willReturn(aResponse().withStatus(200)));
 

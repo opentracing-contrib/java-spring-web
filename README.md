@@ -2,8 +2,8 @@
 
 # OpenTracing Spring Web Instrumentation
 
-This library provides instrumentation for Spring  Web applications (Boot and MVC). It creates tracing data for 
-server requests and also client requests (`RestTemplate` and `AsyncRestTemplate`).
+This library provides instrumentation for Spring Web applications (Boot, MVC and WebFlux). It creates tracing data for 
+server requests and also client requests (`RestTemplate`, `AsyncRestTemplate` and `WebClient`).
 
 ## Use [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead
 
@@ -11,12 +11,22 @@ As it was mentioned above this library traces only inbound/outbound HTTP request
 get automatically traced different set of technologies e.g. `spring-cloud-netflix`, JMS or even more then
 use project [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead.
 
+For reactive applications, it is especially recommended to use `reactor` tracing from
+[opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud), as that will ensure
+that the `Span` is activated in reactor handler functions. (Without that, one would have to extract the
+`Span` from the subscriber context.)
+
 ## How does the server tracing work?
 
+### Servlet
 Server span is started in [Web Servlet Filter](https://github.com/opentracing-contrib/java-web-servlet-filter),
 then tracing interceptor adds spring related tags and logs. There are use case when spring boot invokes a handler after 
 a request processing in filter finished, in this case interceptor starts a new span as `followsFrom` 
 which references the initial span created in the servlet filter.
+
+### Reactive
+Server span is started in [TracingWebFilter](opentracing-spring-web/src/main/java/io/opentracing/contrib/spring/web/webfilter/TracingWebFilter.java)
+(upon subscription), then `onNext()`, `onError()`, etc. handlers add Spring WebFlux related tags and logs.
 
 ## Library versions
 
@@ -36,11 +46,11 @@ If you are using Spring Boot the easiest way how to configure OpenTracing instru
 
 ```
 Just provide an OpenTracing tracer bean and all required configuration is automatically
-done for you. It also instruments all `RestTemplate` and `AsyncRestTemplate` beans.
+done for you. It also instruments all `RestTemplate`, `AsyncRestTemplate`, `WebClient` and `WebClient.Builder` beans.
 
 ### Manual configuration
 
-#### Server
+#### Servlet and MVC Server
 Configuration needs to add `TracingFilter` and `TracingHandlerInterceptor`. Both of these classes
 are required!
 
@@ -77,12 +87,38 @@ public class MVCConfiguration extends WebMvcConfigurerAdapter {
 
 XML based configuration can be used too. Filter can be also directly defined in `web.xml`.
 
+#### Reactive Server
+Configuration needs to add the `TracingWebFilter` bean.
+
+```java
+@Configuration
+class TracingConfiguration {
+    @Bean
+    public TracingWebFilter tracingWebFilter(Tracer tracer) {
+        return new TracingWebFilter(
+                tracer,
+                Integer.MIN_VALUE,               // Order
+                Pattern.compile(""),             // Skip pattern
+                Collections.singletonList("/*"), // URL patterns
+                Arrays.asList(new WebFluxSpanDecorator.StandardTags(), new WebFluxSpanDecorator.WebFluxTags())
+        );
+    }
+}
+```
+
 #### Client
 ```java
 RestTemplate restTemplate = new RestTemplate();
 restTemplate.setInterceptors(Collections.singletonList(new TracingRestTemplateInterceptor(tracer)));
 
 // the same applies for AsyncRestTemplate 
+```
+
+#### Reactive Client
+```java
+WebClient webClient = WebClient.builder()
+        .filter(new TracingExchangeFilterFunction(tracer, Collections.singletonList(new WebClientSpanDecorator.StandardTags())))
+        .build();
 ```
 
 ## Access server span
