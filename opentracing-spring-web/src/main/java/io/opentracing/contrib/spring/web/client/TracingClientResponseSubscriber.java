@@ -67,6 +67,7 @@ class TracingClientResponseSubscriber implements CoreSubscriber<ClientResponse> 
             public void cancel() {
                 spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onCancel(clientRequest, span)));
                 subscription.cancel();
+                span.finish();
             }
         });
     }
