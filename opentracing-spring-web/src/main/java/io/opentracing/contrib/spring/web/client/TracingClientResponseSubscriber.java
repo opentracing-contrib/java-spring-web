@@ -24,6 +24,7 @@ import reactor.core.CoreSubscriber;
 import reactor.util.context.Context;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Similar to {@code WebClientTracerSubscriber} from spring-cloud-sleuth-core.
@@ -38,6 +39,7 @@ class TracingClientResponseSubscriber implements CoreSubscriber<ClientResponse> 
     private final Context context;
     private final Span span;
     private final List<WebClientSpanDecorator> spanDecorators;
+    private final AtomicBoolean terminatedWithSuccessOrError = new AtomicBoolean();
 
     TracingClientResponseSubscriber(
             final CoreSubscriber<? super ClientResponse> subscriber,
@@ -65,7 +67,9 @@ class TracingClientResponseSubscriber implements CoreSubscriber<ClientResponse> 
 
             @Override
             public void cancel() {
-                spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onCancel(clientRequest, span)));
+                if (!terminatedWithSuccessOrError.get()) {
+                    spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onCancel(clientRequest, span)));
+                }
                 subscription.cancel();
                 span.finish();
             }
@@ -75,6 +79,7 @@ class TracingClientResponseSubscriber implements CoreSubscriber<ClientResponse> 
     @Override
     public void onNext(final ClientResponse clientResponse) {
         try {
+            terminatedWithSuccessOrError.set(true);
             // decorate response body
             subscriber.onNext(ClientResponse.from(clientResponse)
                     .body(clientResponse.bodyToFlux(DataBuffer.class).subscriberContext(context))
@@ -88,6 +93,7 @@ class TracingClientResponseSubscriber implements CoreSubscriber<ClientResponse> 
     @Override
     public void onError(final Throwable throwable) {
         try {
+            terminatedWithSuccessOrError.set(true);
             subscriber.onError(throwable);
         } finally {
             spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onError(clientRequest, throwable, span)));
