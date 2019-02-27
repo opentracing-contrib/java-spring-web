@@ -14,7 +14,6 @@
 package io.opentracing.contrib.spring.web.client;
 
 import io.opentracing.Scope;
-import io.opentracing.Span;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.tag.Tags;
 import org.junit.Assert;
@@ -77,21 +76,15 @@ public class TracingWebClientTest extends AbstractTracingClientTest {
         for (int i = 0; i < numberOfCalls; i++) {
             final String requestUrl = url + i;
 
-            final Scope parentSpan = mockTracer.buildSpan("foo").startActive(false);
-            parentSpan.span().setTag("request-url", requestUrl);
-
-            final Span cont = parentSpan.span();
-
-            futures.add(executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try (Scope span = mockTracer.scopeManager().activate(cont, true)) {
+            try (final Scope parentSpan = mockTracer.buildSpan("foo")
+                    .withTag("request-url", requestUrl)
+                    .startActive(false)) {
+                futures.add(executorService.submit(() -> {
+                    try (final Scope span = mockTracer.scopeManager().activate(parentSpan.span(), true)) {
                         client.getForEntity(requestUrl, String.class);
                     }
-                }
-            }));
-
-            parentSpan.close();
+                }));
+            }
         }
 
         // wait to finish all calls
