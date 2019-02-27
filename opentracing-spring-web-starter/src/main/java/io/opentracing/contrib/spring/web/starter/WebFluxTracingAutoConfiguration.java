@@ -39,7 +39,7 @@ import java.util.List;
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(WebTracingProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
-@ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = WebTracingProperties.CONFIGURATION_PREFIX + ".enabled", havingValue = "true", matchIfMissing = true)
 public class WebFluxTracingAutoConfiguration {
     @ConditionalOnMissingBean(WebFluxSpanDecorator.class)
     @Configuration
