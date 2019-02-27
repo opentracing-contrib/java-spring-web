@@ -18,7 +18,6 @@ import io.opentracing.tag.Tags;
 import org.springframework.web.reactive.function.client.ClientRequest;
 import org.springframework.web.reactive.function.client.ClientResponse;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -95,8 +94,10 @@ public interface WebClientSpanDecorator {
 
         @Override
         public void onCancel(final ClientRequest httpRequest, final Span span) {
-            Tags.ERROR.set(span, Boolean.TRUE);
-            span.log(Collections.singletonMap("error.message", "CANCELLED"));
+            final Map<String, Object> logs = new HashMap<>(2);
+            logs.put("event", "cancelled");
+            logs.put("message", "The subscription was cancelled");
+            span.log(logs);
         }
 
         static Map<String, Object> errorLogs(final Throwable throwable) {
