@@ -65,7 +65,7 @@ public interface WebFluxSpanDecorator {
      * {@link Tags#HTTP_STATUS} not because at this point it is not known.
      */
     class StandardTags implements WebFluxSpanDecorator {
-        static final String COMPONENT_NAME = "WebFlux/java-spring-web";
+        static final String COMPONENT_NAME = "java-spring-webflux";
 
         @Override
         public void onRequest(final ServerWebExchange exchange, final Span span) {

@@ -105,7 +105,7 @@ public class WebFluxJettyMinimalIntegrationTest {
         Assert.assertEquals("GET", span.tags().get(Tags.HTTP_METHOD.getKey()));
         Assert.assertEquals(TEST_REST_TEMPLATE.getRootUri() + "/", span.tags().get(Tags.HTTP_URL.getKey()));
         Assert.assertEquals(200, span.tags().get(Tags.HTTP_STATUS.getKey()));
-        Assert.assertEquals("WebFlux/java-spring-web", span.tags().get(Tags.COMPONENT.getKey()));
+        Assert.assertEquals("java-spring-webflux", span.tags().get(Tags.COMPONENT.getKey()));
         Assert.assertNotNull(span.tags().get(Tags.PEER_PORT.getKey()));
         Assert.assertEquals("127.0.0.1", span.tags().get(Tags.PEER_HOST_IPV4.getKey()));
     }

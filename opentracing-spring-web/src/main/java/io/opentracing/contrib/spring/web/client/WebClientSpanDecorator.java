@@ -69,7 +69,7 @@ public interface WebClientSpanDecorator {
      * This decorator adds set of standard tags to the span.
      */
     class StandardTags implements WebClientSpanDecorator {
-        static final String COMPONENT_NAME = "WebClient/java-spring-web";
+        static final String COMPONENT_NAME = "java-spring-webclient";
 
         @Override
         public void onRequest(final ClientRequest clientRequest, final Span span) {
