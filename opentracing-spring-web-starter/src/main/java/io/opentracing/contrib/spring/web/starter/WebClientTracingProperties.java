@@ -17,10 +17,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Configuration for tracing of HTTP clients.
- * Supports RestTemplate and AsyncRestTemplate beans.
+ * Supports RestTemplate, AsyncRestTemplate, and WebClient beans.
  *
  * @author Michal Dvorak
- * @see RestTemplateTracingAutoConfiguration
+ * @see RestTemplateTracingAutoConfiguration,
+ * @see WebClientTracingAutoConfiguration
  * @since 4/5/18
  */
 @ConfigurationProperties(WebClientTracingProperties.CONFIGURATION_PREFIX)
@@ -29,7 +30,8 @@ public class WebClientTracingProperties {
     public static final String CONFIGURATION_PREFIX = WebTracingProperties.CONFIGURATION_PREFIX + ".client";
 
     /**
-     * When set to true (default), it enables automatic tracing of RestTemplate beans, as well as instances created using default RestTemplateBuilder bean.
+     * When set to true (default), it enables automatic tracing of RestTemplate, AsyncRestTemplate, and WebClient beans,
+     * as well as instances created using default RestTemplateBuilder and WebClient.Builder beans.
      * Does not affect instances created manually.
      */
     private boolean enabled = true;
