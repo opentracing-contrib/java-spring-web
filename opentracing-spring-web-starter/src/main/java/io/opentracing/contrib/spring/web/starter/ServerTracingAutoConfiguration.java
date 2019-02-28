@@ -49,7 +49,7 @@ import static java.lang.String.format;
  * @author Eddú Meléndez
  */
 @Configuration
-@ConditionalOnWebApplication
+@ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter(TracerAutoConfiguration.class)
 @EnableConfigurationProperties(WebTracingProperties.class)
