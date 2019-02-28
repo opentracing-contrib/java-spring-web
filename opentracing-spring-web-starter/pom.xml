@@ -46,7 +46,6 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webflux</artifactId>
-      <scope>compile</scope>
       <optional>true</optional>
     </dependency>
 
