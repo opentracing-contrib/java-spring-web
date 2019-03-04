@@ -1,4 +1,27 @@
+/**
+ * Copyright 2016-2019 The OpenTracing Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package io.opentracing.contrib.spring.web.client;
+
+import io.opentracing.Scope;
+import io.opentracing.Span;
+import io.opentracing.mock.MockSpan;
+import io.opentracing.tag.Tags;
+import org.junit.Assert;
+import org.junit.Test;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.web.client.AsyncRestTemplate;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,83 +34,64 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import org.hamcrest.core.StringContains;
-import org.junit.Assert;
-import org.junit.Test;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.AsyncClientHttpRequestInterceptor;
-import org.springframework.test.web.client.ExpectedCount;
-import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.client.match.MockRestRequestMatchers;
-import org.springframework.test.web.client.response.MockRestResponseCreators;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.web.client.AsyncRestTemplate;
-
-import io.opentracing.Scope;
-import io.opentracing.Span;
-import io.opentracing.mock.MockSpan;
-import io.opentracing.tag.Tags;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 
 /**
  * @author Pavol Loffay
  */
-public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest<AsyncRestTemplate> {
+public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest {
 
     public TracingAsyncRestTemplateTest() {
-        final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
-        restTemplate.setInterceptors(Collections.<AsyncClientHttpRequestInterceptor>singletonList(
-                new TracingAsyncRestTemplateInterceptor(mockTracer,
-                        Collections.<RestTemplateSpanDecorator>singletonList(new RestTemplateSpanDecorator.StandardTags()))));
+        super(tracer -> {
+            final AsyncRestTemplate restTemplate = new AsyncRestTemplate();
+            restTemplate.setInterceptors(Collections.singletonList(
+                    new TracingAsyncRestTemplateInterceptor(tracer,
+                            Collections.singletonList(new RestTemplateSpanDecorator.StandardTags()))));
 
-        client = new Client<AsyncRestTemplate>() {
-            @Override
-            public <T> ResponseEntity<T> getForEntity(String url, Class<T> clazz) {
-                ListenableFuture<ResponseEntity<T>> forEntity = restTemplate.getForEntity(url, clazz);
-                try {
-                    return forEntity.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    e.printStackTrace();
-                    Assert.fail();
+            return new Client() {
+                @Override
+                public <T> ResponseEntity<T> getForEntity(String url, Class<T> clazz) {
+                    ListenableFuture<ResponseEntity<T>> forEntity = restTemplate.getForEntity(url, clazz);
+                    try {
+                        // By converting to CompletableFuture<>, we ensure that the callbacks are finished even in
+                        // case of exception
+                        return forEntity.completable().get();
+                    } catch (final ExecutionException e) {
+                        throw new RuntimeException(e.getCause());
+                    } catch (final InterruptedException e) {
+                        e.printStackTrace();
+                        Assert.fail();
+                        return null;
+                    }
                 }
-                return null;
-            }
-
-            @Override
-            public AsyncRestTemplate template() {
-                return restTemplate;
-            }
-        };
-
-        mockServer = MockRestServiceServer.bindTo(client.template()).ignoreExpectOrder(true).build();
+            };
+        }, RestTemplateSpanDecorator.StandardTags.COMPONENT_NAME);
     }
 
     @Test
     public void testMultipleRequests() throws InterruptedException, ExecutionException {
-        final String url = "http://localhost:8080/foo/";
+        final String url = wireMockRule.url("/foo/");
         int numberOfCalls = 1000;
-        mockServer.expect(ExpectedCount.manyTimes(), MockRestRequestMatchers.requestTo(new StringContains("/foo")))
-                .andRespond(MockRestResponseCreators.withSuccess());
+        stubFor(get(urlPathMatching(".*/foo/.*"))
+                .willReturn(aResponse().withStatus(200)));
 
         ExecutorService executorService = Executors.newFixedThreadPool(100);
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         for (int i = 0; i < numberOfCalls; i++) {
             final String requestUrl = url + i;
 
-            final Scope parentSpan = mockTracer.buildSpan("foo").startActive(false);
-            parentSpan.span().setTag("request-url", requestUrl);
-
-            final Span cont = parentSpan.span();
-
-            futures.add(executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try (Scope span = mockTracer.scopeManager().activate(cont, true)) {
+            try (final Scope parentSpan = mockTracer.buildSpan("foo")
+                    .withTag("request-url", requestUrl)
+                    .startActive(false)) {
+                futures.add(executorService.submit(() -> {
+                    try (final Scope span = mockTracer.scopeManager().activate(parentSpan.span(), true)) {
                         client.getForEntity(requestUrl, String.class);
                     }
-                }
-            }));
-
-            parentSpan.close();
+                }));
+            }
         }
 
         // wait to finish all calls
