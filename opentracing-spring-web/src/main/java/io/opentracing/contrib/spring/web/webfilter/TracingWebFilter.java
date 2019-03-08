@@ -111,7 +111,7 @@ public class TracingWebFilter implements WebFilter, Ordered {
                 return false;
             }
         }
-        if (urlPatterns.stream().noneMatch(urlPattern -> urlPattern.matches(pathWithinApplication))) {
+        if (!urlPatterns.isEmpty() && urlPatterns.stream().noneMatch(urlPattern -> urlPattern.matches(pathWithinApplication))) {
             if (LOG.isTraceEnabled()) {
                 LOG.trace("Not tracing request " + request + " because it does not match any URL pattern: " + urlPatterns);
             }

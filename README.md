@@ -99,7 +99,7 @@ class TracingConfiguration {
                 tracer,
                 Integer.MIN_VALUE,               // Order
                 Pattern.compile(""),             // Skip pattern
-                Collections.singletonList("/*"), // URL patterns
+                Collections.emptyList(),         // URL patterns, empty list means all
                 Arrays.asList(new WebFluxSpanDecorator.StandardTags(), new WebFluxSpanDecorator.WebFluxTags())
         );
     }
