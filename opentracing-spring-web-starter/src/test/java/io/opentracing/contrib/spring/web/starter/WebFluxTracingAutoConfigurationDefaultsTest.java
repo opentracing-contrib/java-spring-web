@@ -40,6 +40,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author Csaba Kos
+ *
+ * Test that the default settings in {@link WebTracingProperties} work as expected.
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -86,6 +88,7 @@ public class WebFluxTracingAutoConfigurationDefaultsTest extends AutoConfigurati
     @Qualifier("mockDecorator2")
     private WebFluxSpanDecorator mockDecorator2;
 
+    // Test that top level paths are traced by default
     @Test
     public void testRequestIsTraced() {
         testRestTemplate.getForEntity("/hello", String.class);
@@ -93,6 +96,7 @@ public class WebFluxTracingAutoConfigurationDefaultsTest extends AutoConfigurati
         assertThat(mockTracer.finishedSpans()).hasSize(1);
     }
 
+    // Test that lower level paths are traced by default as well
     @Test
     public void testNestedRequestIsTraced() {
         testRestTemplate.getForEntity("/hello/nested", String.class);
@@ -100,6 +104,7 @@ public class WebFluxTracingAutoConfigurationDefaultsTest extends AutoConfigurati
         assertThat(mockTracer.finishedSpans()).hasSize(1);
     }
 
+    // Test that /info is excluded due to the default skipPattern
     @Test
     public void testExcluded() throws InterruptedException {
         testRestTemplate.getForEntity("/info", String.class);
