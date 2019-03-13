@@ -33,7 +33,18 @@ public class WebTracingProperties {
     private boolean enabled = true;
     private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
     private int order = Integer.MIN_VALUE;
-    private List<String> urlPatterns = new ArrayList<>(Collections.singletonList("/*"));
+
+    /**
+     * List of URL patterns that should be traced.
+     *
+     * For servlet web stack, the URL pattern syntax is defined in the Servlet spec, under "Specification of Mappings".
+     * For reactive (WebFlux), see the documentation of {@link org.springframework.web.util.pattern.PathPattern} for
+     * the syntax.
+     *
+     * By default, the list is empty, which means that all requests will be traced (unless {@link #skipPattern} says
+     * otherwise.)
+     */
+    private List<String> urlPatterns = Collections.emptyList();
 
     public boolean isEnabled() {
         return enabled;
