@@ -73,6 +73,11 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
         public void info() {
             infoCountDownLatch.countDown();
         }
+
+        @RequestMapping("/actuator/info")
+        public void actuatorInfo() {
+            infoCountDownLatch.countDown();
+        }
     }
 
     @Autowired
@@ -108,6 +113,17 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
     @Test
     public void testExcluded() throws InterruptedException {
         testRestTemplate.getForEntity("/info", String.class);
+        infoCountDownLatch.await();
+
+        assertThat(mockTracer.finishedSpans()).hasSize(0);
+        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
+        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(0);
+    }
+
+    // Test that /actuator/info is excluded due to the default skipPattern
+    @Test
+    public void testActuatorExcluded() throws InterruptedException {
+        testRestTemplate.getForEntity("/actuator/info", String.class);
         infoCountDownLatch.await();
 
         assertThat(mockTracer.finishedSpans()).hasSize(0);

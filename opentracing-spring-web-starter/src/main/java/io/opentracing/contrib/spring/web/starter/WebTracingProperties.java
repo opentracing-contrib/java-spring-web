@@ -27,7 +27,7 @@ public class WebTracingProperties {
     public static final String CONFIGURATION_PREFIX = "opentracing.spring.web";
 
     public static final Pattern DEFAULT_SKIP_PATTERN = Pattern.compile(
-            "/api-docs.*|/autoconfig|/configprops|/dump|/health|/info|/metrics.*|" +
+            "/api-docs.*|/autoconfig|/configprops|/dump|/health|/info|/metrics.*|/actuator.*|" +
             "/mappings|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream");
 
     private boolean enabled = true;
