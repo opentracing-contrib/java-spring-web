@@ -52,6 +52,8 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
 
     private static CountDownLatch infoCountDownLatch = new CountDownLatch(1);
 
+    private static CountDownLatch actuatorInfoCountDownLatch = new CountDownLatch(1);
+
     @RestController
     @Configuration
     @EnableAutoConfiguration
@@ -76,7 +78,7 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
 
         @RequestMapping("/actuator/info")
         public void actuatorInfo() {
-            infoCountDownLatch.countDown();
+            actuatorInfoCountDownLatch.countDown();
         }
     }
 
@@ -124,7 +126,7 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
     @Test
     public void testActuatorExcluded() throws InterruptedException {
         testRestTemplate.getForEntity("/actuator/info", String.class);
-        infoCountDownLatch.await();
+        actuatorInfoCountDownLatch.await();
 
         assertThat(mockTracer.finishedSpans()).hasSize(0);
         assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
