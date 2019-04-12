@@ -113,7 +113,7 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
 
     // Test that /info is excluded due to the default skipPattern
     @Test
-    public void testExcluded() throws InterruptedException {
+    public void testInfoExcluded() throws InterruptedException {
         testRestTemplate.getForEntity("/info", String.class);
         infoCountDownLatch.await();
 
