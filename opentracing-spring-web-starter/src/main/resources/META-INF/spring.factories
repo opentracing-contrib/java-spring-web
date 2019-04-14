@@ -1,5 +1,6 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 io.opentracing.contrib.spring.web.starter.ServerTracingAutoConfiguration,\
+io.opentracing.contrib.spring.web.starter.SkipPatternAutoConfiguration,\
 io.opentracing.contrib.spring.web.starter.RestTemplateTracingAutoConfiguration,\
 io.opentracing.contrib.spring.web.starter.WebClientTracingAutoConfiguration,\
 io.opentracing.contrib.spring.web.starter.WebFluxTracingAutoConfiguration

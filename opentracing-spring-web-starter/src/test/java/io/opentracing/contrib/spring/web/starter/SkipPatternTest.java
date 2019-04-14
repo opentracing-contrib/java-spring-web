@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Pavol Loffay
+ * @author Gilles Robert
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -78,12 +79,7 @@ public class SkipPatternTest {
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         assertEquals(0, mockSpans.size());
         testRestTemplate.getForEntity("/hello", String.class);
-        await().until(new Callable<Boolean>() {
-            @Override
-            public Boolean call() {
-                return mockTracer.finishedSpans().size() == 1;
-            }
-        });
+        await().until(() -> mockTracer.finishedSpans().size() == 1);
         mockSpans = mockTracer.finishedSpans();
         assertEquals(1, mockSpans.size());
     }
