@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import io.opentracing.Tracer;
 import io.opentracing.contrib.spring.tracer.configuration.TracerAutoConfiguration;
@@ -56,7 +56,7 @@ import static java.lang.String.format;
 @ConditionalOnBean(Tracer.class)
 @AutoConfigureAfter({TracerAutoConfiguration.class, SkipPatternAutoConfiguration.class})
 @EnableConfigurationProperties(WebTracingProperties.class)
-@ConditionalOnClass(WebMvcConfigurerAdapter.class)
+@ConditionalOnClass(WebMvcConfigurer.class)
 @ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
 public class ServerTracingAutoConfiguration {
 
@@ -98,11 +98,11 @@ public class ServerTracingAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(TracingFilter.class)
-    public WebMvcConfigurerAdapter tracingHandlerInterceptor(final Tracer tracer) {
-        log.info("Creating " + WebMvcConfigurerAdapter.class.getSimpleName() + " bean with " +
+    public WebMvcConfigurer tracingHandlerInterceptor(final Tracer tracer) {
+        log.info("Creating " + WebMvcConfigurer.class.getSimpleName() + " bean with " +
                 TracingHandlerInterceptor.class);
 
-        return new WebMvcConfigurerAdapter() {
+        return new WebMvcConfigurer() {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 List<HandlerInterceptorSpanDecorator> decorators = interceptorSpanDecorator.getIfAvailable();
