@@ -37,7 +37,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.AsyncRestTemplate;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,7 +80,7 @@ public class DisabledRestTemplateTracingAutoConfigurationTest extends AutoConfig
     @Autowired(required = false)
     private FilterRegistrationBean tracingFilter;
     @Autowired(required = false)
-    private WebMvcConfigurerAdapter tracingHandlerInterceptor;
+    private WebMvcConfigurer tracingHandlerInterceptor;
     @Autowired
     private MockTracer mockTracer;
     @Autowired
