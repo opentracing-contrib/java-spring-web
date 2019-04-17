@@ -13,11 +13,11 @@
  */
 package io.opentracing.contrib.spring.web.starter;
 
-import io.opentracing.Tracer;
-import io.opentracing.contrib.spring.tracer.configuration.TracerAutoConfiguration;
-import io.opentracing.contrib.spring.web.webfilter.TracingWebFilter;
-import io.opentracing.contrib.spring.web.webfilter.WebFluxSpanDecorator;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -27,20 +27,25 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.spring.tracer.configuration.TracerAutoConfiguration;
+import io.opentracing.contrib.spring.web.webfilter.TracingWebFilter;
+import io.opentracing.contrib.spring.web.webfilter.WebFluxSpanDecorator;
 
 /**
  * Instrumentation of WebFlux.
  *
  * @author Csaba Kos
+ * @author Gilles Robert
  */
 @Configuration
 @ConditionalOnBean(Tracer.class)
-@AutoConfigureAfter(TracerAutoConfiguration.class)
+@AutoConfigureAfter({TracerAutoConfiguration.class, SkipPatternAutoConfiguration.class})
 @EnableConfigurationProperties(WebTracingProperties.class)
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
 @ConditionalOnProperty(name = WebTracingProperties.CONFIGURATION_PREFIX + ".enabled", havingValue = "true", matchIfMissing = true)
 public class WebFluxTracingAutoConfiguration {
+
     @ConditionalOnMissingBean(WebFluxSpanDecorator.class)
     @Configuration
     static class DefaultWebFluxSpanDecorators {
@@ -60,12 +65,13 @@ public class WebFluxTracingAutoConfiguration {
     public TracingWebFilter traceFilter(
             final Tracer tracer,
             final WebTracingProperties webTracingProperties,
-            final ObjectProvider<List<WebFluxSpanDecorator>> webFilterSpanDecorators
+            final ObjectProvider<List<WebFluxSpanDecorator>> webFilterSpanDecorators,
+            final @Qualifier("skipPattern") Pattern skipPattern
     ) {
         return new TracingWebFilter(
                 tracer,
                 webTracingProperties.getOrder(),
-                webTracingProperties.getSkipPattern(),
+                skipPattern,
                 webTracingProperties.getUrlPatterns(),
                 webFilterSpanDecorators.getObject()
         );

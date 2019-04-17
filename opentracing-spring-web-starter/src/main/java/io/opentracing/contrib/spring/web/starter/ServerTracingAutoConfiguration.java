@@ -16,8 +16,10 @@ package io.opentracing.contrib.spring.web.starter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -47,22 +49,27 @@ import static java.lang.String.format;
 /**
  * @author Pavol Loffay
  * @author Eddú Meléndez
+ * @author Gilles Robert
  */
 @Configuration
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @ConditionalOnBean(Tracer.class)
-@AutoConfigureAfter(TracerAutoConfiguration.class)
+@AutoConfigureAfter({TracerAutoConfiguration.class, SkipPatternAutoConfiguration.class})
 @EnableConfigurationProperties(WebTracingProperties.class)
 @ConditionalOnClass(WebMvcConfigurerAdapter.class)
 @ConditionalOnProperty(name = "opentracing.spring.web.enabled", havingValue = "true", matchIfMissing = true)
 public class ServerTracingAutoConfiguration {
+
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
+    private final Pattern skipPattern;
     private final ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator;
     private final ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator;
 
-    public ServerTracingAutoConfiguration(ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator,
+    public ServerTracingAutoConfiguration(@Qualifier("skipPattern") Pattern skipPattern,
+                                          ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator,
                                           ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator) {
+        this.skipPattern = skipPattern;
         this.servletFilterSpanDecorator = servletFilterSpanDecorator;
         this.interceptorSpanDecorator = interceptorSpanDecorator;
     }
@@ -72,17 +79,16 @@ public class ServerTracingAutoConfiguration {
     public FilterRegistrationBean tracingFilter(Tracer tracer, WebTracingProperties tracingConfiguration) {
         log.info(format("Creating %s bean with %s mapped to %s, skip pattern is \"%s\"",
                 FilterRegistrationBean.class.getSimpleName(), TracingFilter.class.getSimpleName(),
-                tracingConfiguration.getUrlPatterns().toString(),
-                tracingConfiguration.getSkipPattern()));
+                tracingConfiguration.getUrlPatterns().toString(), skipPattern));
 
         List<ServletFilterSpanDecorator> decorators = servletFilterSpanDecorator.getIfAvailable();
         if (CollectionUtils.isEmpty(decorators)) {
             decorators = Collections.singletonList(ServletFilterSpanDecorator.STANDARD_TAGS);
         }
 
-        TracingFilter tracingFilter = new TracingFilter(tracer, decorators, tracingConfiguration.getSkipPattern());
+        TracingFilter tracingFilter = new TracingFilter(tracer, decorators, skipPattern);
 
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean(tracingFilter);
+        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean<>(tracingFilter);
         filterRegistrationBean.setUrlPatterns(tracingConfiguration.getUrlPatterns());
         filterRegistrationBean.setOrder(tracingConfiguration.getOrder());
         filterRegistrationBean.setAsyncSupported(true);
@@ -106,8 +112,6 @@ public class ServerTracingAutoConfiguration {
                 }
 
                 registry.addInterceptor(new TracingHandlerInterceptor(tracer, decorators));
-
-                super.addInterceptors(registry);
             }
         };
     }

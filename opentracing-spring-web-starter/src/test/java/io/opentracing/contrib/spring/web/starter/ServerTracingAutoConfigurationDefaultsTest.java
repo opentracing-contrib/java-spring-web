@@ -13,14 +13,9 @@
  */
 package io.opentracing.contrib.spring.web.starter;
 
-import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
-import io.opentracing.mock.MockTracer;
-import org.awaitility.Awaitility;
-import org.hamcrest.core.IsEqual;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -33,8 +28,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
+import io.opentracing.contrib.web.servlet.filter.ServletFilterSpanDecorator;
+import io.opentracing.mock.MockTracer;
+import org.awaitility.Awaitility;
+import org.hamcrest.core.IsEqual;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -111,22 +112,10 @@ public class ServerTracingAutoConfigurationDefaultsTest extends AutoConfiguratio
         assertThat(mockTracer.finishedSpans()).hasSize(1);
     }
 
-    // Test that /info is excluded due to the default skipPattern
-    @Test
-    public void testInfoExcluded() throws InterruptedException {
-        testRestTemplate.getForEntity("/info", String.class);
-        infoCountDownLatch.await();
-
-        assertThat(mockTracer.finishedSpans()).hasSize(0);
-        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);
-        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(0);
-    }
-
     // Test that /actuator/info is excluded due to the default skipPattern
     @Test
-    public void testActuatorExcluded() throws InterruptedException {
+    public void testActuatorExcluded() {
         testRestTemplate.getForEntity("/actuator/info", String.class);
-        actuatorInfoCountDownLatch.await();
 
         assertThat(mockTracer.finishedSpans()).hasSize(0);
         assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(0);

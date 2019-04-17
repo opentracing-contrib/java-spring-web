@@ -13,25 +13,24 @@
  */
 package io.opentracing.contrib.spring.web.starter;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author Pavol Loffay
+ * @author Gilles Robert
  */
 @ConfigurationProperties(WebTracingProperties.CONFIGURATION_PREFIX)
 public class WebTracingProperties {
 
     public static final String CONFIGURATION_PREFIX = "opentracing.spring.web";
 
-    public static final Pattern DEFAULT_SKIP_PATTERN = Pattern.compile(
-            "/api-docs.*|/autoconfig|/configprops|/dump|/health|/info|/metrics.*|/actuator.*|" +
-            "/mappings|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream");
+    static final String DEFAULT_SKIP_PATTERN = "/api-docs.*|/swagger.*|.*\\.png|.*\\.css|.*\\.js|.*\\.html|/favicon.ico|/hystrix.stream";
 
     private boolean enabled = true;
-    private Pattern skipPattern = DEFAULT_SKIP_PATTERN;
+    private String skipPattern = DEFAULT_SKIP_PATTERN;
     private int order = Integer.MIN_VALUE;
 
     /**
@@ -54,11 +53,11 @@ public class WebTracingProperties {
         this.enabled = enabled;
     }
 
-    public Pattern getSkipPattern() {
+    public String getSkipPattern() {
         return skipPattern;
     }
 
-    public void setSkipPattern(Pattern skipPattern) {
+    public void setSkipPattern(String skipPattern) {
         this.skipPattern = skipPattern;
     }
 
