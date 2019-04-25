@@ -88,8 +88,8 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
-                        span.finish();
                     }
+                    span.finish();
                 }
 
                 @Override
