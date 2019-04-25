@@ -83,15 +83,16 @@ public class TracingAsyncRestTemplateTest extends AbstractTracingClientTest {
         for (int i = 0; i < numberOfCalls; i++) {
             final String requestUrl = url + i;
 
-            try (final Scope parentSpan = mockTracer.buildSpan("foo")
-                    .withTag("request-url", requestUrl)
-                    .startActive(false)) {
-                futures.add(executorService.submit(() -> {
-                    try (final Scope span = mockTracer.scopeManager().activate(parentSpan.span(), true)) {
-                        client.getForEntity(requestUrl, String.class);
-                    }
-                }));
-            }
+            Span parentSpan = mockTracer.buildSpan("foo")
+                .withTag("request-url", requestUrl)
+                .start() ;
+            futures.add(executorService.submit(() -> {
+                try (final Scope span = mockTracer.activateSpan(parentSpan)) {
+                    client.getForEntity(requestUrl, String.class);
+                } finally {
+                    parentSpan.finish();
+                }
+            }));
         }
 
         // wait to finish all calls

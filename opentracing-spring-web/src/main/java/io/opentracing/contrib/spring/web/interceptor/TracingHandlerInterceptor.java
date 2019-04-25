@@ -45,6 +45,7 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
 
     private static final String SCOPE_STACK = TracingHandlerInterceptor.class.getName() + ".scopeStack";
     private static final String CONTINUATION_FROM_ASYNC_STARTED = TracingHandlerInterceptor.class.getName() + ".continuation";
+    private static final String IS_ERROR_HANDLING_SPAN = TracingHandlerInterceptor.class.getName() + ".error_handling_span";
 
     private Tracer tracer;
     private List<HandlerInterceptorSpanDecorator> decorators;
@@ -78,8 +79,8 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
     }
 
     @Override
-    public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
-            throws Exception {
+    public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler) {
+        Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
 
         if (!isTraced(httpServletRequest)) {
             return true;
@@ -89,24 +90,24 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
          * 1. check if there is an active span, it has been activated in servlet filter or in this interceptor (forward)
          * 2. if there is no active span then it can be handling of an async request or spring boot default error handling
          */
-        Scope serverSpan = tracer.scopeManager().active();
+        Span serverSpan = tracer.activeSpan();
         if (serverSpan == null) {
             if (httpServletRequest.getAttribute(CONTINUATION_FROM_ASYNC_STARTED) != null) {
-                Span contd = (Span) httpServletRequest.getAttribute(CONTINUATION_FROM_ASYNC_STARTED);
-                serverSpan = tracer.scopeManager().activate(contd, false);
+                serverSpan = (Span) httpServletRequest.getAttribute(CONTINUATION_FROM_ASYNC_STARTED);
                 httpServletRequest.removeAttribute(CONTINUATION_FROM_ASYNC_STARTED);
+                activeSpanStack.push(tracer.activateSpan(serverSpan));
             } else {
                 // spring boot default error handling, executes interceptor after processing in the filter (ugly huh?)
                 serverSpan = tracer.buildSpan(httpServletRequest.getMethod())
                         .addReference(References.FOLLOWS_FROM, TracingFilter.serverSpanContext(httpServletRequest))
-                        .startActive(true);
+                        .start();
+                httpServletRequest.setAttribute(IS_ERROR_HANDLING_SPAN, true);
+                activeSpanStack.push(tracer.activateSpan(serverSpan));
             }
-            Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
-            activeSpanStack.push(serverSpan);
         }
 
         for (HandlerInterceptorSpanDecorator decorator : decorators) {
-            decorator.onPreHandle(httpServletRequest, handler, serverSpan.span());
+            decorator.onPreHandle(httpServletRequest, handler, serverSpan);
         }
 
         return true;
@@ -114,57 +115,40 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
 
     @Override
     public void afterConcurrentHandlingStarted (
-            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler)
-            throws Exception {
+            HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler) {
 
         if (!isTraced(httpServletRequest)) {
             return;
         }
 
-        Span span;
-        Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
-        if(activeSpanStack.size() > 0) {
-            Scope scope = activeSpanStack.pop();
-            span = scope.span();
-            onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
-            scope.close();
-        } else {
-            span = tracer.activeSpan();
-            onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
-        }
-
-        httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, span);
-
-    }
-
-    private void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler, Span span) {
+        Span span = tracer.activeSpan();
         for (HandlerInterceptorSpanDecorator decorator : decorators) {
             decorator.onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
         }
+        httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, span);
     }
+
 
     @Override
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                Object handler, Exception ex) throws Exception {
+                                Object handler, Exception ex) {
 
         if (!isTraced(httpServletRequest)) {
             return;
         }
 
+        Span span = tracer.activeSpan();
+        for (HandlerInterceptorSpanDecorator decorator : decorators) {
+            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, span);
+        }
         Deque<Scope> scopeStack = getScopeStack(httpServletRequest);
         if(scopeStack.size() > 0) {
             Scope scope = scopeStack.pop();
-            onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, scope.span());
             scope.close();
-        } else {
-            onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, tracer.activeSpan());
         }
-    }
-
-    private void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                   Object handler, Exception ex, Span span) {
-        for (HandlerInterceptorSpanDecorator decorator : decorators) {
-            decorator.onAfterCompletion(httpServletRequest, httpServletResponse, handler, ex, span);
+        if (httpServletRequest.getAttribute(IS_ERROR_HANDLING_SPAN) != null) {
+            httpServletRequest.removeAttribute(IS_ERROR_HANDLING_SPAN);
+            span.finish();
         }
     }
 

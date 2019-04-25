@@ -14,7 +14,6 @@
 package io.opentracing.contrib.spring.web.interceptor.itest.common.app;
 
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -30,7 +29,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.request.async.AsyncWebRequest;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -79,11 +77,7 @@ public class TestController {
     @RequestMapping("/localSpan")
     public String localSpan(HttpServletRequest request) {
         verifyActiveSpan();
-        io.opentracing.Tracer.SpanBuilder spanBuilder = tracer.buildSpan("localSpan");
-        Span localSpan = spanBuilder
-                .startManual();
-        localSpan.finish();
-
+        tracer.buildSpan("localSpan").start().finish();
         return "sync";
     }
 
