@@ -64,52 +64,51 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                                                           byte[] body,
                                                           AsyncClientHttpRequestExecution execution) throws IOException {
 
-        final Scope scope = tracer.buildSpan(httpRequest.getMethod().toString())
-                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive(false);
-        tracer.inject(scope.span().context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpRequest.getHeaders()));
+        final Span span = tracer.buildSpan(httpRequest.getMethod().toString())
+                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
+                .start();
+        tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpRequest.getHeaders()));
 
         for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
             try {
-                spanDecorator.onRequest(httpRequest, scope.span());
+                spanDecorator.onRequest(httpRequest, span);
             } catch (RuntimeException exDecorator) {
                 log.error("Exception during decorating span", exDecorator);
             }
         }
 
         ListenableFuture<ClientHttpResponse> future = execution.executeAsync(httpRequest, body);
-
-        final Span span = scope.span();
-
         future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
             @Override
             public void onSuccess(ClientHttpResponse httpResponse) {
-                try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
+                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
-                            spanDecorator.onResponse(httpRequest, httpResponse, scope.span());
+                            spanDecorator.onResponse(httpRequest, httpResponse, span);
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
                     }
+                } finally {
+                    span.finish();
                 }
             }
 
             @Override
             public void onFailure(Throwable ex) {
-                try (Scope asyncScope = tracer.scopeManager().activate(span, true)) {
+                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
-                            spanDecorator.onError(httpRequest, ex, scope.span());
+                            spanDecorator.onError(httpRequest, ex, span);
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
                     }
+                } finally {
+                    span.finish();
                 }
             }
         });
-
-        scope.close();
-
         return future;
     }
 }

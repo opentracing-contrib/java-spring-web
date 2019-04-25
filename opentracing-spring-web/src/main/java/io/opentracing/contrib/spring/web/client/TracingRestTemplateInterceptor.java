@@ -13,6 +13,7 @@
  */
 package io.opentracing.contrib.spring.web.client;
 
+import io.opentracing.Span;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,39 +71,40 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
                                         ClientHttpRequestExecution execution) throws IOException {
         ClientHttpResponse httpResponse;
 
-        try (Scope scope = tracer.buildSpan(httpRequest.getMethod().toString())
-                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT).startActive(true)) {
-            tracer.inject(scope.span().context(), Format.Builtin.HTTP_HEADERS,
+        Span span = tracer.buildSpan(httpRequest.getMethod().toString())
+                .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
+                .start();
+            tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS,
                     new HttpHeadersCarrier(httpRequest.getHeaders()));
 
-            for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
-                try {
-                    spanDecorator.onRequest(httpRequest, scope.span());
-                } catch (RuntimeException exDecorator) {
-                    log.error("Exception during decorating span", exDecorator);
-                }
-            }
-
+        for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
             try {
-                httpResponse = execution.execute(httpRequest, body);
-            } catch (Exception ex) {
-                for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
-                    try {
-                        spanDecorator.onError(httpRequest, ex, scope.span());
-                    } catch (RuntimeException exDecorator) {
-                        log.error("Exception during decorating span", exDecorator);
-                    }
-                }
-                throw ex;
+                spanDecorator.onRequest(httpRequest, span);
+            } catch (RuntimeException exDecorator) {
+                log.error("Exception during decorating span", exDecorator);
             }
+        }
 
+        try (Scope scope = tracer.activateSpan(span)) {
+            httpResponse = execution.execute(httpRequest, body);
             for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
                 try {
-                    spanDecorator.onResponse(httpRequest, httpResponse, scope.span());
+                    spanDecorator.onResponse(httpRequest, httpResponse, span);
                 } catch (RuntimeException exDecorator) {
                     log.error("Exception during decorating span", exDecorator);
                 }
             }
+        } catch (Exception ex) {
+            for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
+                try {
+                    spanDecorator.onError(httpRequest, ex, span);
+                } catch (RuntimeException exDecorator) {
+                    log.error("Exception during decorating span", exDecorator);
+                }
+            }
+            throw ex;
+        } finally {
+            span.finish();
         }
 
         return httpResponse;

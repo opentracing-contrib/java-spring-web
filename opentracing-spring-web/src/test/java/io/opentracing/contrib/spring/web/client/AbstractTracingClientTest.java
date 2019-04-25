@@ -16,6 +16,7 @@ package io.opentracing.contrib.spring.web.client;
 import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
@@ -139,15 +140,17 @@ public abstract class AbstractTracingClientTest {
     @Test
     public void testParentSpan() {
         {
-            Scope parent = mockTracer.buildSpan("parent").startActive(true);
+            Span parent = mockTracer.buildSpan("parent").start();
 
             final String path = "/foo";
             final String url = wireMockRule.url(path);
             stubFor(get(urlPathEqualTo(path))
                     .willReturn(ok()));
-            client.getForEntity(url, String.class);
-
-            parent.close();
+            try (Scope scope = mockTracer.activateSpan(parent)) {
+                client.getForEntity(url, String.class);
+            } finally {
+                parent.finish();
+            }
         }
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
