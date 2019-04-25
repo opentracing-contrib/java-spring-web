@@ -74,8 +74,8 @@ public class TracingRestTemplateInterceptor implements ClientHttpRequestIntercep
         Span span = tracer.buildSpan(httpRequest.getMethod().toString())
                 .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
                 .start();
-            tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS,
-                    new HttpHeadersCarrier(httpRequest.getHeaders()));
+        tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS,
+                new HttpHeadersCarrier(httpRequest.getHeaders()));
 
         for (RestTemplateSpanDecorator spanDecorator : spanDecorators) {
             try {

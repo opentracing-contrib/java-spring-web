@@ -77,26 +77,23 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
             }
         }
 
-        ListenableFuture<ClientHttpResponse> future = execution.executeAsync(httpRequest, body);
-        future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
-            @Override
-            public void onSuccess(ClientHttpResponse httpResponse) {
-                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
+        try (Scope scope = tracer.activateSpan(span)) {
+            ListenableFuture<ClientHttpResponse> future = execution.executeAsync(httpRequest, body);
+            future.addCallback(new ListenableFutureCallback<ClientHttpResponse>() {
+                @Override
+                public void onSuccess(ClientHttpResponse httpResponse) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
                             spanDecorator.onResponse(httpRequest, httpResponse, span);
                         } catch (RuntimeException exDecorator) {
                             log.error("Exception during decorating span", exDecorator);
                         }
+                        span.finish();
                     }
-                } finally {
-                    span.finish();
                 }
-            }
 
-            @Override
-            public void onFailure(Throwable ex) {
-                try (Scope asyncScope = tracer.scopeManager().activate(span)) {
+                @Override
+                public void onFailure(Throwable ex) {
                     for (RestTemplateSpanDecorator spanDecorator: spanDecorators) {
                         try {
                             spanDecorator.onError(httpRequest, ex, span);
@@ -104,11 +101,10 @@ public class TracingAsyncRestTemplateInterceptor implements AsyncClientHttpReque
                             log.error("Exception during decorating span", exDecorator);
                         }
                     }
-                } finally {
                     span.finish();
                 }
-            }
-        });
-        return future;
+            });
+            return future;
+        }
     }
 }

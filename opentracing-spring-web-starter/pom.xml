@@ -58,12 +58,6 @@
       <groupId>io.opentracing.contrib</groupId>
       <artifactId>opentracing-spring-tracer-configuration-starter</artifactId>
       <version>${version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>opentracing-api</artifactId>
-          <groupId>io.opentracing</groupId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
