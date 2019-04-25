@@ -125,18 +125,13 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
         for (HandlerInterceptorSpanDecorator decorator : decorators) {
             decorator.onAfterConcurrentHandlingStarted(httpServletRequest, httpServletResponse, handler, span);
         }
-        Deque<Scope> activeSpanStack = getScopeStack(httpServletRequest);
-        if(activeSpanStack.size() > 0) {
-            Scope scope = activeSpanStack.pop();
-            scope.close();
-        }
         httpServletRequest.setAttribute(CONTINUATION_FROM_ASYNC_STARTED, span);
     }
 
 
     @Override
     public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
-                                Object handler, Exception ex) throws Exception {
+                                Object handler, Exception ex) {
 
         if (!isTraced(httpServletRequest)) {
             return;
@@ -152,8 +147,8 @@ public class TracingHandlerInterceptor extends HandlerInterceptorAdapter {
             scope.close();
         }
         if (httpServletRequest.getAttribute(IS_ERROR_HANDLING_SPAN) != null) {
-            span.finish();
             httpServletRequest.removeAttribute(IS_ERROR_HANDLING_SPAN);
+            span.finish();
         }
     }
 
