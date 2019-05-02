@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -62,14 +63,14 @@ public class ServerTracingAutoConfiguration {
 
     private static final Log log = LogFactory.getLog(ServerTracingAutoConfiguration.class);
 
-    private final Pattern skipPattern;
+    @Autowired
+    @Qualifier("skipPattern")
+    private Pattern skipPattern;
     private final ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator;
     private final ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator;
 
-    public ServerTracingAutoConfiguration(@Qualifier("skipPattern") Pattern skipPattern,
-                                          ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator,
+    public ServerTracingAutoConfiguration(ObjectProvider<List<ServletFilterSpanDecorator>> servletFilterSpanDecorator,
                                           ObjectProvider<List<HandlerInterceptorSpanDecorator>> interceptorSpanDecorator) {
-        this.skipPattern = skipPattern;
         this.servletFilterSpanDecorator = servletFilterSpanDecorator;
         this.interceptorSpanDecorator = interceptorSpanDecorator;
     }
