@@ -64,9 +64,9 @@
     <version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>0.2.0</version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>
     <version.junit>4.12</version.junit>
     <version.org.mockito-mockito-core>2.23.4</version.org.mockito-mockito-core>
-    <version.org.springframework.boot>2.1.1.RELEASE</version.org.springframework.boot>
+    <version.org.springframework.boot>2.1.5.RELEASE</version.org.springframework.boot>
     <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml  -->
-    <version.org.springframework>5.1.3.RELEASE</version.org.springframework>
+    <version.org.springframework>5.1.7.RELEASE</version.org.springframework>
     <version.com.github.tomakehurst-wiremock-jre8>2.21.0</version.com.github.tomakehurst-wiremock-jre8>
     <version.io.projectreactor.netty-reactor-netty>0.8.5.RELEASE</version.io.projectreactor.netty-reactor-netty>
 
