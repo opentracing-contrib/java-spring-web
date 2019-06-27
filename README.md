@@ -30,7 +30,7 @@ Server span is started in [TracingWebFilter](opentracing-spring-web/src/main/jav
 
 ## Library versions
 
-Versions 1.x.y of the library are meant to target Spring Framework 5.x and Spring Boot 2.x while versions 0.x.y are meant to be used with Spring Framework 4.3 and Spring Boot 1.5
+Versions 1.x.y, 2.x.y, ... of the library are meant to target Spring Framework 5.x and Spring Boot 2.x while versions 0.x.y are meant to be used with Spring Framework 4.3 and Spring Boot 1.5
 
 
 ## Configuration
