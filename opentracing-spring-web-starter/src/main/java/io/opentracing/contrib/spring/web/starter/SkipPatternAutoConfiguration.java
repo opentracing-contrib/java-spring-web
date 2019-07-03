@@ -143,6 +143,9 @@ public class SkipPatternAutoConfiguration {
   @Configuration
   protected static class DefaultSkipPatternConfig {
 
+    @Autowired(required = false)
+    WebTracingProperties webTracingProperties;
+
     private static String combinedPatterns(String skipPattern) {
       String pattern = skipPattern;
       if (!StringUtils.hasText(skipPattern)) {
@@ -152,7 +155,10 @@ public class SkipPatternAutoConfiguration {
     }
 
     @Bean
-    SkipPattern defaultSkipPatternBean(WebTracingProperties webTracingProperties) {
+    SkipPattern defaultSkipPatternBean() {
+      if (webTracingProperties == null) {
+        return Optional::empty;
+      }
       return () -> Optional.of(Pattern.compile(combinedPatterns(webTracingProperties.getSkipPattern())));
     }
   }
