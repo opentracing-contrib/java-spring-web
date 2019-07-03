@@ -43,8 +43,11 @@ public class SkipPatternConfigTest {
   public void testShouldPickSkipPatternFromWebProperties() {
     WebTracingProperties webTracingProperties = new WebTracingProperties();
     webTracingProperties.setSkipPattern("foo.*|bar.*");
-    Pattern pattern = new SkipPatternAutoConfiguration.DefaultSkipPatternConfig()
-        .defaultSkipPatternBean(webTracingProperties).pattern().get();
+    SkipPatternAutoConfiguration.DefaultSkipPatternConfig defaultSkipPatternConfig =
+            new SkipPatternAutoConfiguration.DefaultSkipPatternConfig();
+    defaultSkipPatternConfig.webTracingProperties = webTracingProperties;
+    Pattern pattern = defaultSkipPatternConfig
+        .defaultSkipPatternBean().pattern().get();
 
     then(pattern.pattern()).isEqualTo("foo.*|bar.*");
   }
