@@ -20,6 +20,7 @@ import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
+import io.opentracing.propagation.TextMapAdapter;
 import io.opentracing.tag.Tags;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -28,7 +29,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoOperator;
 import reactor.util.context.Context;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Similar to {@code MonoWebFilterTrace} from spring-cloud-sleuth-core.
@@ -72,7 +76,21 @@ class TracingOperator extends MonoOperator<Void, Void> {
 
         try (final Scope scope = tracer.scopeManager().activate(span, false)) {
             exchange.getAttributes().put(TracingWebFilter.SERVER_SPAN_CONTEXT, span.context());
-            source.subscribe(new TracingSubscriber(subscriber, exchange, context, span, spanDecorators));
+            source.subscribe(new TracingSubscriber(subscriber, this.wrappleExchange(span), context, span, spanDecorators));
         }
+    }
+
+    private ServerWebExchange wrappleExchange(Span span) {
+        Map<String, String> map = new HashMap();
+        this.tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new TextMapAdapter(map));
+        ServerHttpRequest req = this.exchange.getRequest();
+        Iterator iterator = map.keySet().iterator();
+
+        while (iterator.hasNext()) {
+            String key = (String) iterator.next();
+            req.mutate().header(key, map.get(key));
+        }
+
+        return this.exchange.mutate().request(req).build();
     }
 }
