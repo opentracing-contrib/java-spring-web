@@ -84,13 +84,13 @@ class TracingOperator extends MonoOperator<Void, Void> {
         Map<String, String> map = new HashMap();
         this.tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new TextMapAdapter(map));
         ServerHttpRequest req = this.exchange.getRequest();
-        Iterator iterator = map.keySet().iterator();
-
-        while (iterator.hasNext()) {
-            String key = (String) iterator.next();
-            req.mutate().header(key, map.get(key));
+        if (map.isEmpty()) {
+            return this.exchange;
+        } else {
+            for (String key : map.keySet()) {
+                req.mutate().header(key, map.get(key));
+            }
         }
-
         return this.exchange.mutate().request(req).build();
     }
 }
