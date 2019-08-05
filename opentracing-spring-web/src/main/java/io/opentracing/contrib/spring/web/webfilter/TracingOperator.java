@@ -70,7 +70,7 @@ class TracingOperator extends MonoOperator<Void, Void> {
                 .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER)
                 .start();
 
-        try (final Scope scope = tracer.scopeManager().activate(span, false)) {
+        try (final Scope scope = tracer.scopeManager().activate(span)) {
             exchange.getAttributes().put(TracingWebFilter.SERVER_SPAN_CONTEXT, span.context());
             source.subscribe(new TracingSubscriber(subscriber, exchange, context, span, spanDecorators));
         }
