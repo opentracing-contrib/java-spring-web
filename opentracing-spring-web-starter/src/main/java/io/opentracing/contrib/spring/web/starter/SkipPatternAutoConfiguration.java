@@ -86,8 +86,7 @@ public class SkipPatternAutoConfiguration {
   @ConditionalOnProperty(value = "opentracing.spring.web.ignoreAutoConfiguredSkipPatterns", havingValue = "false", matchIfMissing = true)
   protected static class ActuatorSkipPatternProviderConfig {
 
-    static Optional<Pattern> getEndpointsPatterns(String contextPath,
-                                                  WebEndpointProperties webEndpointProperties,
+    static Optional<Pattern> getEndpointsPatterns(WebEndpointProperties webEndpointProperties,
                                                   EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier) {
       Collection<ExposableWebEndpoint> endpoints = endpointsSupplier.getEndpoints();
 
@@ -98,8 +97,7 @@ public class SkipPatternAutoConfiguration {
       String pattern = endpoints.stream().map(PathMappedEndpoint::getRootPath)
           .map(path -> path + "|" + path + "/.*").collect(
               Collectors.joining("|",
-                  getPathPrefix(contextPath,
-                      webEndpointProperties.getBasePath()) + "/(",
+                  getPathPrefix(webEndpointProperties.getBasePath()) + "/(",
                   ")"));
       if (StringUtils.hasText(pattern)) {
         return Optional.of(Pattern.compile(pattern));
@@ -107,11 +105,8 @@ public class SkipPatternAutoConfiguration {
       return Optional.empty();
     }
 
-    private static String getPathPrefix(String contextPath, String actuatorBasePath) {
+    private static String getPathPrefix(String actuatorBasePath) {
       String result = "";
-      if (StringUtils.hasText(contextPath)) {
-        result += contextPath;
-      }
       if (!actuatorBasePath.equals("/")) {
         result += actuatorBasePath;
       }
@@ -121,12 +116,9 @@ public class SkipPatternAutoConfiguration {
     @Bean
     @ConditionalOnManagementPort(ManagementPortType.SAME)
     public SkipPattern skipPatternForActuatorEndpointsSamePort(
-        final ServerProperties serverProperties,
         final WebEndpointProperties webEndpointProperties,
         final EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier) {
-      return () -> getEndpointsPatterns(
-          serverProperties.getServlet().getContextPath(), webEndpointProperties,
-          endpointsSupplier);
+      return () -> getEndpointsPatterns(webEndpointProperties, endpointsSupplier);
     }
 
     @Bean
@@ -135,8 +127,7 @@ public class SkipPatternAutoConfiguration {
     public SkipPattern skipPatternForActuatorEndpointsDifferentPort(
         final WebEndpointProperties webEndpointProperties,
         final EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier) {
-      return () -> getEndpointsPatterns(null, webEndpointProperties,
-          endpointsSupplier);
+      return () -> getEndpointsPatterns(webEndpointProperties, endpointsSupplier);
     }
   }
 
