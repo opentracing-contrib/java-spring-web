@@ -51,16 +51,15 @@ import static org.junit.Assert.assertEquals;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class SkipEndPointsWithContextPathWithoutBasePathTest {
 
-  private static final String CONTEXT_PATH = "/myapp";
   private static final String ACTUATOR_PATH = "/";
   private static final String HEALTH_PATH = "/health";
   private static final String AUDIT_EVENTS_PATH = "/auditevents";
-  private static final String HELLO = CONTEXT_PATH + "/hello";
-  private static final String HEALTHCARE = CONTEXT_PATH + "/healthcare";
+  private static final String HELLO = "/hello";
+  private static final String HEALTHCARE = "/healthcare";
   private static final String INFO_PATH = "/info";
-  private static final String HEALTH = CONTEXT_PATH + ACTUATOR_PATH + HEALTH_PATH;
-  private static final String INFO = CONTEXT_PATH + ACTUATOR_PATH + INFO_PATH;
-  private static final String AUDIT_EVENTS = CONTEXT_PATH + ACTUATOR_PATH + AUDIT_EVENTS_PATH;
+  private static final String HEALTH = ACTUATOR_PATH + HEALTH_PATH;
+  private static final String INFO = ACTUATOR_PATH + INFO_PATH;
+  private static final String AUDIT_EVENTS = ACTUATOR_PATH + AUDIT_EVENTS_PATH;
 
   @Configuration
   @EnableAutoConfiguration

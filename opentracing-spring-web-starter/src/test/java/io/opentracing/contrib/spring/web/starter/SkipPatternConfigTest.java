@@ -78,8 +78,7 @@ public class SkipPatternConfigTest {
   public void testShouldReturnEmptyWhenNoEndpoints() {
     EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier = Collections::emptyList;
     Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ActuatorSkipPatternProviderConfig()
-        .skipPatternForActuatorEndpointsSamePort(new ServerProperties(),
-            new WebEndpointProperties(), endpointsSupplier)
+        .skipPatternForActuatorEndpointsSamePort(new WebEndpointProperties(), endpointsSupplier)
         .pattern();
 
     then(pattern).isEmpty();
@@ -87,27 +86,6 @@ public class SkipPatternConfigTest {
 
   @Test
   public void testShouldReturnEndpointsWithoutContextPath() {
-    ServerProperties properties = new ServerProperties();
-    WebEndpointProperties webEndpointProperties = new WebEndpointProperties();
-    EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier = () -> {
-      ExposableWebEndpoint infoEndpoint = createEndpoint("info");
-      ExposableWebEndpoint healthEndpoint = createEndpoint("health");
-
-      return Arrays.asList(infoEndpoint, healthEndpoint);
-    };
-
-    Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ActuatorSkipPatternProviderConfig()
-        .skipPatternForActuatorEndpointsSamePort(properties, webEndpointProperties,
-            endpointsSupplier)
-        .pattern();
-
-    then(pattern).isNotEmpty();
-    then(pattern.get().pattern())
-        .isEqualTo("/actuator/(info|info/.*|health|health/.*)");
-  }
-
-  @Test
-  public void testShouldReturnEndpointsWithContextPath() {
     WebEndpointProperties webEndpointProperties = new WebEndpointProperties();
     ServerProperties properties = new ServerProperties();
     properties.getServlet().setContextPath("foo");
@@ -120,18 +98,16 @@ public class SkipPatternConfigTest {
     };
 
     Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ActuatorSkipPatternProviderConfig()
-        .skipPatternForActuatorEndpointsSamePort(properties, webEndpointProperties,
-            endpointsSupplier)
+        .skipPatternForActuatorEndpointsSamePort(webEndpointProperties, endpointsSupplier)
         .pattern();
 
     then(pattern).isNotEmpty();
     then(pattern.get().pattern())
-        .isEqualTo("foo/actuator/(info|info/.*|health|health/.*)");
+        .isEqualTo("/actuator/(info|info/.*|health|health/.*)");
   }
 
   @Test
   public void testShouldReturnEndpointsWithoutContextPathAndBasePathSetToRoot() {
-    ServerProperties properties = new ServerProperties();
     WebEndpointProperties webEndpointProperties = new WebEndpointProperties();
     webEndpointProperties.setBasePath("/");
 
@@ -143,8 +119,7 @@ public class SkipPatternConfigTest {
     };
 
     Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ActuatorSkipPatternProviderConfig()
-        .skipPatternForActuatorEndpointsSamePort(properties, webEndpointProperties,
-            endpointsSupplier)
+        .skipPatternForActuatorEndpointsSamePort(webEndpointProperties, endpointsSupplier)
         .pattern();
 
     then(pattern).isNotEmpty();
@@ -155,8 +130,6 @@ public class SkipPatternConfigTest {
   public void testShouldReturnEndpointsWithContextPathAndBasePathSetToRoot() {
     WebEndpointProperties webEndpointProperties = new WebEndpointProperties();
     webEndpointProperties.setBasePath("/");
-    ServerProperties properties = new ServerProperties();
-    properties.getServlet().setContextPath("foo");
 
     EndpointsSupplier<ExposableWebEndpoint> endpointsSupplier = () -> {
       ExposableWebEndpoint infoEndpoint = createEndpoint("info");
@@ -166,12 +139,11 @@ public class SkipPatternConfigTest {
     };
 
     Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ActuatorSkipPatternProviderConfig()
-        .skipPatternForActuatorEndpointsSamePort(properties, webEndpointProperties,
-            endpointsSupplier)
+        .skipPatternForActuatorEndpointsSamePort(webEndpointProperties, endpointsSupplier)
         .pattern();
 
     then(pattern).isNotEmpty();
-    then(pattern.get().pattern()).isEqualTo("foo/(info|info/.*|health|health/.*)");
+    then(pattern.get().pattern()).isEqualTo("/(info|info/.*|health|health/.*)");
   }
 
   private ExposableWebEndpoint createEndpoint(final String name) {
