@@ -190,9 +190,8 @@ public interface HandlerInterceptorSpanDecorator {
                     ((HandlerMethod) handler).getMethod().getName() : null;
         }
 
-        @Deprecated
         public static String requestMapping(Object handler) {
-            String[] mappings = ((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class).path();
+            String[] mappings = ((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class).value();
             return Arrays.toString(mappings);
         }
 
