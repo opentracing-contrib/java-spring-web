@@ -133,8 +133,7 @@ public interface HandlerInterceptorSpanDecorator {
     };
 
     /**
-     * Decorator to record details about the handler as log events recorded on the span.
-     * Support Spring RequestMapping
+     * Use the Spring RequestMapping's value as the span's operation name.
      */
     HandlerInterceptorSpanDecorator HANDLER_SPRING_WEB_METHOD_OPERATION_NAME = new HandlerInterceptorSpanDecorator() {
         @Override
