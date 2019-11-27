@@ -84,11 +84,11 @@ public class TestController {
     @RequestMapping("/async")
     public Callable<String> async() {
         verifyActiveSpan();
-        final Span cont = tracer.scopeManager().active().span();
+        final Span cont = tracer.scopeManager().activeSpan();
         return new Callable<String>() {
             public String call() throws Exception {
-                try (Scope scope = tracer.scopeManager().activate(cont, false)) {
-                    if (tracer.scopeManager().active() == null) {
+                try (Scope scope = tracer.scopeManager().activate(cont)) {
+                    if (tracer.scopeManager().activeSpan() == null) {
                         throw new RuntimeException("No active span");
                     }
                     Thread.sleep(1000);
@@ -161,7 +161,7 @@ public class TestController {
     }
 
     private void verifyActiveSpan() {
-        if (tracer.scopeManager().active() == null) {
+        if (tracer.scopeManager().activeSpan() == null) {
             throw new RuntimeException("No active span");
         }
     }
