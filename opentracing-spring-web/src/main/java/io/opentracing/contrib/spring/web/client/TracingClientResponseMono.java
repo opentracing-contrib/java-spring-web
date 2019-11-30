@@ -62,7 +62,7 @@ class TracingClientResponseMono extends Mono<ClientResponse> {
                 .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT)
                 .start();
 
-        try (final Scope scope = tracer.scopeManager().activate(span, false)) {
+        try (final Scope scope = tracer.scopeManager().activate(span)) {
             final ClientRequest.Builder requestBuilder = ClientRequest.from(request);
             requestBuilder.headers(httpHeaders ->
                     tracer.inject(span.context(), Format.Builtin.HTTP_HEADERS, new HttpHeadersCarrier(httpHeaders)));
