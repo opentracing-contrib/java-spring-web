@@ -5,9 +5,9 @@
 This library provides instrumentation for Spring Web applications (Boot, MVC and WebFlux). It creates tracing data for 
 server requests and also client requests (`RestTemplate`, `AsyncRestTemplate` and `WebClient`).
 
-## Use [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead
+## Comparison with [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud)
 
-As it was mentioned above this library traces only inbound/outbound HTTP requests. If you would like to 
+As it was mentioned above, this library traces only inbound/outbound HTTP requests. If you would like to 
 get automatically traced different set of technologies e.g. `spring-cloud-netflix`, JMS or even more then
 use project [opentracing-spring-cloud](https://github.com/opentracing-contrib/java-spring-cloud) instead.
 
