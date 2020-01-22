@@ -98,7 +98,7 @@ public class TracingWebFilter implements WebFilter, Ordered {
      *
      * @return whether request should be traced or not
      */
-    boolean shouldBeTraced(final ServerHttpRequest request) {
+    protected boolean shouldBeTraced(final ServerHttpRequest request) {
         final PathContainer pathWithinApplication = request.getPath().pathWithinApplication();
         // skip URLs matching skip pattern
         // e.g. pattern is defined as '/health|/status' then URL 'http://localhost:5000/context/health' won't be traced
