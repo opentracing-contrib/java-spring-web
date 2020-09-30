@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2020 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -38,6 +38,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Pavol Loffay
@@ -168,6 +170,11 @@ public abstract class AbstractTracingClientTest {
             Assert.assertTrue(NestedExceptionUtils.getRootCause(ex) instanceof UnknownHostException);
             //ok UnknownHostException
         }
+
+        await().atMost(5, SECONDS).until(() -> {
+            List<MockSpan> mockSpans = mockTracer.finishedSpans();
+            return mockSpans.size() == 1;
+        });
 
         List<MockSpan> mockSpans = mockTracer.finishedSpans();
         Assert.assertEquals(1, mockSpans.size());

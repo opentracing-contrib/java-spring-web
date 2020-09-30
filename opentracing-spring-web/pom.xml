@@ -73,5 +73,10 @@
       <version>${version.io.projectreactor.netty-reactor-netty}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
