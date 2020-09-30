@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2020 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,7 +20,6 @@ import io.opentracing.contrib.spring.web.interceptor.itest.common.app.TracingBea
 import io.opentracing.mock.MockSpan;
 import io.opentracing.tag.Tags;
 import org.awaitility.Awaitility;
-import org.awaitility.Duration;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,6 +29,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -47,7 +47,7 @@ public abstract class AbstractBaseITests {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        Awaitility.setDefaultTimeout(Duration.FIVE_SECONDS);
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(5));
     }
 
     @Before
