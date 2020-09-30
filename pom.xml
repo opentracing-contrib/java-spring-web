@@ -19,7 +19,7 @@
 
   <groupId>io.opentracing.contrib</groupId>
   <artifactId>opentracing-spring-web-parent</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>${project.groupId}:${project.artifactId}</name>
@@ -30,7 +30,7 @@
     <url>https://github.com/opentracing-contrib/java-spring-web</url>
     <connection>scm:git:https://github.com/opentracing-contrib/java-spring-web.git</connection>
     <developerConnection>scm:git:https://github.com/opentracing-contrib/java-spring-web.git</developerConnection>
-    <tag>4.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <licenses>
