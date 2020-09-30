@@ -57,18 +57,18 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <main.basedir>${project.basedir}</main.basedir>
 
-    <version.org.awaitility-awaitility>3.0.0</version.org.awaitility-awaitility>
+    <version.org.awaitility-awaitility>4.0.3</version.org.awaitility-awaitility>
     <version.io.opentracing>0.33.0</version.io.opentracing>
     <version.io.opentracing.contrib-opentracing-web-servlet-filter>0.4.0</version.io.opentracing.contrib-opentracing-web-servlet-filter>
     <version.io.opentracing.contrib-opentracing-tracerresolver>0.1.8</version.io.opentracing.contrib-opentracing-tracerresolver>
     <version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>0.3.1</version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>
     <version.junit>4.12</version.junit>
     <version.org.mockito-mockito-core>2.23.4</version.org.mockito-mockito-core>
-    <version.org.springframework.boot>2.1.6.RELEASE</version.org.springframework.boot>
+    <version.org.springframework.boot>2.3.4.RELEASE</version.org.springframework.boot>
     <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml  -->
-    <version.org.springframework>5.1.8.RELEASE</version.org.springframework>
+    <version.org.springframework>5.2.9.RELEASE</version.org.springframework>
     <version.com.github.tomakehurst-wiremock-jre8>2.21.0</version.com.github.tomakehurst-wiremock-jre8>
-    <version.io.projectreactor.netty-reactor-netty>0.8.5.RELEASE</version.io.projectreactor.netty-reactor-netty>
+    <version.io.projectreactor.netty-reactor-netty>0.9.12.RELEASE</version.io.projectreactor.netty-reactor-netty>
 
     <!-- plugins -->
     <version.maven-deploy-plugin>2.8.2</version.maven-deploy-plugin>
@@ -134,6 +134,12 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${version.org.mockito-mockito-core}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.awaitility</groupId>
+        <artifactId>awaitility</artifactId>
+        <version>${version.org.awaitility-awaitility}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
