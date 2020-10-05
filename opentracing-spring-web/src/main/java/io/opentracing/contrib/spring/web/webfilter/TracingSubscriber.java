@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors. Copyright 2019 The OpenTracing Authors.
+ * Copyright 2013-2020 the original author or authors. Copyright 2020 The OpenTracing Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,20 @@ class TracingSubscriber implements CoreSubscriber<Void> {
 
     @Override
     public void onSubscribe(final Subscription subscription) {
-        spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onRequest(exchange, span)));
-        subscriber.onSubscribe(subscription);
+        subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+                spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onRequest(exchange, span)));
+                subscription.request(n);
+            }
+
+            @Override
+            public void cancel() {
+                span.finish();
+                exchange.getAttributes().remove(TracingWebFilter.SERVER_SPAN_CONTEXT);
+                subscription.cancel();
+            }
+        });
     }
 
     @Override
