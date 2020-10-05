@@ -55,8 +55,20 @@ class TracingSubscriber implements CoreSubscriber<Void> {
 
     @Override
     public void onSubscribe(final Subscription subscription) {
-        spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onRequest(exchange, span)));
-        subscriber.onSubscribe(subscription);
+        subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+                spanDecorators.forEach(spanDecorator -> safelyCall(() -> spanDecorator.onRequest(exchange, span)));
+                subscription.request(n);
+            }
+
+            @Override
+            public void cancel() {
+                span.finish();
+                exchange.getAttributes().remove(TracingWebFilter.SERVER_SPAN_CONTEXT);
+                subscription.cancel();
+            }
+        });
     }
 
     @Override
