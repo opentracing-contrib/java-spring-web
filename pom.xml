@@ -62,7 +62,7 @@
     <version.io.opentracing.contrib-opentracing-web-servlet-filter>0.4.0</version.io.opentracing.contrib-opentracing-web-servlet-filter>
     <version.io.opentracing.contrib-opentracing-tracerresolver>0.1.8</version.io.opentracing.contrib-opentracing-tracerresolver>
     <version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>0.3.1</version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>
-    <version.junit>4.12</version.junit>
+    <version.junit>4.13.1</version.junit>
     <version.org.mockito-mockito-core>2.23.4</version.org.mockito-mockito-core>
     <version.org.springframework.boot>2.3.4.RELEASE</version.org.springframework.boot>
     <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml  -->
