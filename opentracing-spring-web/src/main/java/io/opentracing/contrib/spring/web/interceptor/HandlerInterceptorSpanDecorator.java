@@ -133,6 +133,33 @@ public interface HandlerInterceptorSpanDecorator {
     };
 
     /**
+     * Use the Spring RequestMapping's value as the span's operation name.
+     */
+    HandlerInterceptorSpanDecorator HANDLER_SPRING_WEB_METHOD_OPERATION_NAME = new HandlerInterceptorSpanDecorator() {
+        @Override
+        public void onPreHandle(HttpServletRequest httpServletRequest, Object handler, Span span) {
+            String webOperationName = HandlerUtils.getOperationName(handler);
+            if (webOperationName != null) {
+                span.setOperationName(webOperationName);
+                return;
+            }
+
+            String metaData = HandlerInterceptorSpanDecorator.HandlerUtils.methodName(handler);
+            if (metaData != null) {
+                span.setOperationName(metaData);
+            }
+        }
+
+        @Override
+        public void onAfterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler, Exception ex, Span span) {
+        }
+
+        @Override
+        public void onAfterConcurrentHandlingStarted(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object handler, Span span) {
+        }
+    };
+
+    /**
      * Helper class for deriving tags/logs from handler object.
      */
     class HandlerUtils {
@@ -163,8 +190,31 @@ public interface HandlerInterceptorSpanDecorator {
         }
 
         public static String requestMapping(Object handler) {
-            String[] mappings = ((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class).path();
+            String[] mappings = ((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class).value();
             return Arrays.toString(mappings);
+        }
+
+        public static String methodRequestMapping(Object handler) {
+            String[] mappings = (((HandlerMethod) handler).getMethodAnnotation(RequestMapping.class)).value();
+            return mappings != null && mappings.length > 0 ? mappings[0] : null;
+        }
+
+        public static String clazzRequestMapping(Object handler) {
+            String[] mappings = ((HandlerMethod) handler).getBeanType().getAnnotation(RequestMapping.class).value();
+            return mappings != null && mappings.length > 0 ? mappings[0] : null;
+        }
+
+        public static String getOperationName(Object handler){
+            StringBuffer operationName = null;
+            String methodRequestMapping = methodRequestMapping(handler);
+            if (methodRequestMapping != null) {
+                operationName = new StringBuffer(methodRequestMapping);
+                String clazzRequestMapping = clazzRequestMapping(handler);
+                if (clazzRequestMapping != null) {
+                    operationName.insert(0, clazzRequestMapping);
+                }
+            }
+            return operationName==null?null:operationName.toString();
         }
     }
 }
