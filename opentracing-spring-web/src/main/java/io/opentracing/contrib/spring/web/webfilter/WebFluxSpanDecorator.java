@@ -40,7 +40,7 @@ public interface WebFluxSpanDecorator {
      * @param exchange web exchange
      * @param span span to decorate
      */
-    void onCreate(ServerWebExchange exchange, Span span);
+    default void onCreate(ServerWebExchange exchange, Span span) { }
 
     /**
      * Decorate span when {@code .onSubscribe()} is called.
@@ -75,11 +75,6 @@ public interface WebFluxSpanDecorator {
      */
     class StandardTags implements WebFluxSpanDecorator {
         static final String COMPONENT_NAME = "java-spring-webflux";
-
-        @Override
-        public void onCreate(ServerWebExchange exchange, Span span) {
-            // No-op
-        }
 
         @Override
         public void onRequest(final ServerWebExchange exchange, final Span span) {
@@ -126,12 +121,6 @@ public interface WebFluxSpanDecorator {
      * Adds tags from WebFlux handler to span.
      */
     class WebFluxTags implements WebFluxSpanDecorator {
-
-        @Override
-        public void onCreate(ServerWebExchange exchange, Span span) {
-            // No-op
-        }
-
         @Override
         public void onRequest(final ServerWebExchange exchange, final Span span) {
             // No-op
