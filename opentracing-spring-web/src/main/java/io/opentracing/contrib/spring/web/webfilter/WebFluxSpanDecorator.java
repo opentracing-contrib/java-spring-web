@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2021 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -34,8 +34,17 @@ import java.util.concurrent.TimeoutException;
 public interface WebFluxSpanDecorator {
 
     /**
-     * Decorate span before {@code .onSubscribe()} is called. This is called right after span in created. Span
-     * context is already present in request attributes with name {@link TracingWebFilter#SERVER_SPAN_CONTEXT}.
+     * Decorate span right after its creation.
+     * Span context is already present in request attributes with name {@link TracingWebFilter#SERVER_SPAN_CONTEXT}.
+     *
+     * @param exchange web exchange
+     * @param span span to decorate
+     */
+    default void onCreate(ServerWebExchange exchange, Span span) { }
+
+    /**
+     * Decorate span when {@code .onSubscribe()} is called.
+     * Span context is already present in request attributes with name {@link TracingWebFilter#SERVER_SPAN_CONTEXT}.
      *
      * @param exchange web exchange
      * @param span span to decorate
