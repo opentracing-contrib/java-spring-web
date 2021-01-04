@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2020 The OpenTracing Authors
+ * Copyright 2016-2021 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import io.opentracing.util.ThreadLocalScopeManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.HttpMethod;
@@ -38,8 +39,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TracingSubscriberTest {
@@ -91,9 +92,12 @@ public class TracingSubscriberTest {
         assertEquals(SignalType.ON_COMPLETE, finalSignalType.get());
 
         Span finishedSpan = tracer.finishedSpans().get(0);
-        verify(spanDecorator).onRequest(exchange, finishedSpan);
-        verify(spanDecorator).onResponse(exchange, finishedSpan);
-        verify(spanDecorator, never()).onError(any(ServerWebExchange.class), any(Throwable.class), any(Span.class));
+
+        InOrder inOrder = inOrder(spanDecorator);
+        inOrder.verify(spanDecorator).onCreate(exchange, finishedSpan);
+        inOrder.verify(spanDecorator).onRequest(exchange, finishedSpan);
+        inOrder.verify(spanDecorator).onResponse(exchange, finishedSpan);
+        verifyNoMoreInteractions(spanDecorator);
     }
 
     @Test
@@ -122,9 +126,12 @@ public class TracingSubscriberTest {
         assertEquals(SignalType.ON_ERROR, finalSignalType.get());
 
         Span finishedSpan = tracer.finishedSpans().get(0);
-        verify(spanDecorator).onRequest(exchange, finishedSpan);
-        verify(spanDecorator).onError(eq(exchange), any(Throwable.class), eq(finishedSpan));
-        verify(spanDecorator, never()).onResponse(any(ServerWebExchange.class), any(Span.class));
+
+        InOrder inOrder = inOrder(spanDecorator);
+        inOrder.verify(spanDecorator).onCreate(exchange, finishedSpan);
+        inOrder.verify(spanDecorator).onRequest(exchange, finishedSpan);
+        inOrder.verify(spanDecorator).onError(eq(exchange), any(Throwable.class), eq(finishedSpan));
+        verifyNoMoreInteractions(spanDecorator);
     }
 
     @Test
@@ -168,8 +175,10 @@ public class TracingSubscriberTest {
         assertEquals(SignalType.CANCEL, finalSignalType.get());
 
         Span finishedSpan = tracer.finishedSpans().get(0);
-        verify(spanDecorator).onRequest(exchange, finishedSpan);
-        verify(spanDecorator, never()).onError(any(ServerWebExchange.class), any(Throwable.class), any(Span.class));
-        verify(spanDecorator, never()).onResponse(any(ServerWebExchange.class), any(Span.class));
+
+        InOrder inOrder = inOrder(spanDecorator);
+        inOrder.verify(spanDecorator).onCreate(exchange, finishedSpan);
+        inOrder.verify(spanDecorator).onRequest(exchange, finishedSpan);
+        verifyNoMoreInteractions(spanDecorator);
     }
 }

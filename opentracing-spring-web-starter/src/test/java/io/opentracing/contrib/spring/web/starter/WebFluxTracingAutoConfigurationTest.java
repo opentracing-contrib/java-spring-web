@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2021 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -126,8 +126,8 @@ public class WebFluxTracingAutoConfigurationTest extends AutoConfigurationBaseTe
         Awaitility.await().until(reportedSpansSize(), IsEqual.equalTo(1));
 
         assertThat(mockTracer.finishedSpans()).hasSize(1);
-        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(2);
-        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(2);
+        assertThat(Mockito.mockingDetails(mockDecorator1).getInvocations()).hasSize(3);
+        assertThat(Mockito.mockingDetails(mockDecorator2).getInvocations()).hasSize(3);
     }
 
     @Test

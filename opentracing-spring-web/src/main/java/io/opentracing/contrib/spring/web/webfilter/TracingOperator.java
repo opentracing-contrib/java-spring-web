@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2019 the original author or authors. Copyright 2019 The OpenTracing Authors.
+ * Copyright 2013-2021 the original author or authors. Copyright 2019 The OpenTracing Authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
 import io.opentracing.tag.Tags;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.CoreSubscriber;
@@ -36,6 +38,9 @@ import java.util.List;
  * @author Csaba Kos
  */
 class TracingOperator extends MonoOperator<Void, Void> {
+
+    private static final Log LOG = LogFactory.getLog(TracingOperator.class);
+
     private final Tracer tracer;
     private final ServerWebExchange exchange;
     private final List<WebFluxSpanDecorator> spanDecorators;
@@ -70,8 +75,17 @@ class TracingOperator extends MonoOperator<Void, Void> {
                 .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER)
                 .start();
 
+        exchange.getAttributes().put(TracingWebFilter.SERVER_SPAN_CONTEXT, span.context());
+
+        for (WebFluxSpanDecorator spanDecorator : spanDecorators) {
+            try {
+                spanDecorator.onCreate(exchange, span);
+            } catch (RuntimeException exDecorator) {
+                LOG.error("Exception during decorating span", exDecorator);
+            }
+        }
+
         try (final Scope scope = tracer.scopeManager().activate(span)) {
-            exchange.getAttributes().put(TracingWebFilter.SERVER_SPAN_CONTEXT, span.context());
             source.subscribe(new TracingSubscriber(subscriber, exchange, context, span, spanDecorators));
         }
     }
