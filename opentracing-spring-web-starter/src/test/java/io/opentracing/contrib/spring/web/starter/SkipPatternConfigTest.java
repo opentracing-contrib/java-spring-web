@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2021 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -63,9 +63,20 @@ public class SkipPatternConfigTest {
   }
 
   @Test
+  public void testShouldReturnEmptyWhenManagementContextHasOnlyARootSlashHasContextPath() {
+    ManagementServerProperties properties = new ManagementServerProperties();
+    properties.setBasePath("/");
+
+    Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ManagementSkipPatternProviderConfig()
+        .skipPatternForManagementServerProperties(properties).pattern();
+
+    then(pattern).isEmpty();
+  }
+
+  @Test
   public void testShouldReturnManagementContextWithContextPath() {
     ManagementServerProperties properties = new ManagementServerProperties();
-    properties.getServlet().setContextPath("foo");
+    properties.setBasePath("foo");
 
     Optional<Pattern> pattern = new SkipPatternAutoConfiguration.ManagementSkipPatternProviderConfig()
         .skipPatternForManagementServerProperties(properties).pattern();

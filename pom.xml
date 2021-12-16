@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 
-    Copyright 2016-2020 The OpenTracing Authors
+    Copyright 2016-2021 The OpenTracing Authors
 
     Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
     in compliance with the License. You may obtain a copy of the License at
@@ -64,9 +64,9 @@
     <version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>0.4.0</version.io.opentracing.contrib-opentracing-spring-tracer-configuration-starter>
     <version.junit>4.13.1</version.junit>
     <version.org.mockito-mockito-core>2.23.4</version.org.mockito-mockito-core>
-    <version.org.springframework.boot>2.3.4.RELEASE</version.org.springframework.boot>
+    <version.org.springframework.boot>2.4.0</version.org.springframework.boot>
     <!-- Should match version from https://github.com/spring-projects/spring-boot/blob/master/spring-boot-project/spring-boot-dependencies/pom.xml  -->
-    <version.org.springframework>5.2.9.RELEASE</version.org.springframework>
+    <version.org.springframework>5.3.1</version.org.springframework>
     <version.com.github.tomakehurst-wiremock-jre8>2.21.0</version.com.github.tomakehurst-wiremock-jre8>
     <version.io.projectreactor.netty-reactor-netty>0.9.12.RELEASE</version.io.projectreactor.netty-reactor-netty>
 

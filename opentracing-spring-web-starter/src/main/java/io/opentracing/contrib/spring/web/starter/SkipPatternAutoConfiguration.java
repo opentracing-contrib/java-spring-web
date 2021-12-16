@@ -1,5 +1,5 @@
 /**
- * Copyright 2016-2019 The OpenTracing Authors
+ * Copyright 2016-2021 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -65,11 +65,15 @@ public class SkipPatternAutoConfiguration {
 
     static Optional<Pattern> getPatternForManagementServerProperties(
         ManagementServerProperties managementServerProperties) {
-      String contextPath = managementServerProperties.getServlet().getContextPath();
+      String contextPath = managementServerProperties.getBasePath();
       if (StringUtils.hasText(contextPath)) {
-        return Optional.of(Pattern.compile(contextPath + ".*"));
+        return Optional.of(Pattern.compile(cleanup(contextPath) + ".*"));
       }
       return Optional.empty();
+    }
+
+    private static String cleanup(String contextPath) {
+      return contextPath.startsWith("/") ? contextPath.substring(1) : contextPath;
     }
 
     @Bean
